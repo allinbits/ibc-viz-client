@@ -17,7 +17,7 @@ import echarts from "echarts";
 import { v4 as uuidv4 } from "uuid";
 import { find, groupBy } from "lodash";
 
-const API = "http://161.35.13.141";
+const API = process.env.VUE_APP_API_URL;
 
 export default {
   data: function() {
