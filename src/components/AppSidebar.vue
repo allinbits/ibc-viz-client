@@ -40,7 +40,7 @@
 .item__icon {
   width: 0.5rem;
   height: 0.5rem;
-  fill: rgba(0, 0, 0, 0.2);
+  fill: rgba(255, 255, 255, 0.1);
 }
 .item__status__down .item__icon {
   fill: rgb(130, 0, 0);
@@ -91,10 +91,7 @@ export default {
       const item = find(this.blockchains, ["blockchain", b.blockchain]);
       let status;
       try {
-        await fetch(`http://${b.blockchain}:26657/health`, {
-          method: "head",
-          mode: "no-cors",
-        });
+        await axios.get(`${API}/health?blockchain=${b.blockchain}`);
         status = "up";
       } catch {
         status = "down";
