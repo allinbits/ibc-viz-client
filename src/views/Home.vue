@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div id="chart" style="width: 100%; height: 90vh"></div>
+    <div id="chart" style="width: 100%; height: 100vh"></div>
   </div>
 </template>
 
 <style scoped>
 #chart {
-  background: #111;
+  background: #151515;
   overflow: hidden;
 }
 </style>
@@ -113,11 +113,13 @@ export default {
   async mounted() {
     this.txsAll = (await axios.get(`${API}/txs`)).data;
     const chart = echarts.init(document.getElementById("chart"));
+    window.onresize = chart.resize;
     chart.setOption({
       series: [
         {
           type: "graph",
           layout: "force",
+          width: "100px",
           roam: true,
           data: [...this.addressNodes],
           links: [...this.addressLinks],
