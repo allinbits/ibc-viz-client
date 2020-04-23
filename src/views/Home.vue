@@ -113,7 +113,7 @@ export default {
     },
   },
   async mounted() {
-    this.socket = io(`${API}`);
+    this.socket = io("http://161.35.13.141");
     this.socket.on("tx", (tx) => {
       console.log(tx);
     });
