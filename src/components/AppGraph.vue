@@ -1,5 +1,5 @@
 <template>
-  <div id="chart" style="width: 100%; height: 100vh"></div>
+  <div id="chart" style="width: 100vw; height: 100vh"></div>
 </template>
 
 <script>
@@ -18,6 +18,10 @@ export default {
       socket: null,
       chart: null,
     };
+  },
+  beforeRouteEnter(to, from, next) {
+    console.log(456);
+    next();
   },
   computed: {
     txs() {

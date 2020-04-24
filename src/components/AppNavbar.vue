@@ -14,6 +14,10 @@
 </template>
 
 <style scoped>
+.wrapper {
+  background: rgba(21, 21, 21, 0.8);
+  backdrop-filter: blur(5px);
+}
 .container {
   justify-content: space-around;
   width: 100%;
@@ -21,7 +25,6 @@
   display: flex;
   margin-left: auto;
   margin-right: auto;
-  background: rgba(21, 21, 21, 1);
 }
 .icon {
   stroke: rgba(255, 255, 255, 0.45);
