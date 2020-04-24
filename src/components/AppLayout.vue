@@ -25,14 +25,10 @@
 </style>
 
 <script>
-import AppGraph from "@/components/AppGraph.vue";
-import AppSidebar from "@/components/AppSidebar.vue";
 import AppNavbar from "@/components/AppNavbar.vue";
 
 export default {
   components: {
-    AppGraph,
-    AppSidebar,
     AppNavbar,
   },
 };
