@@ -16,24 +16,49 @@ export default {
     return {
       txsAll: [],
       socket: null,
+      chart: null,
     };
   },
   computed: {
+    txs() {
+      return this.txsAll;
+    },
+    blockchainAddress() {
+      let nodes = {};
+      this.txs.forEach((tx) => {
+        const create_client = find(tx.events.events, {
+          action: "create_client",
+        });
+        const send = find(tx.events.events, { action: "send" });
+        if (create_client || send) {
+          const address = find(tx.events.events, "sender").sender;
+          nodes[address] = tx.blockchain;
+        }
+      });
+      return nodes;
+    },
+    blockchainAddressLinks() {
+      return Object.keys(this.blockchainAddress).map((address) => {
+        return {
+          source: this.blockchainAddress[address],
+          target: address,
+          lineStyle: {
+            color: "source",
+          },
+        };
+      });
+    },
     blockchainNodes() {
       const data = [...new Set(this.txs.map((tx) => tx.blockchain))];
       return data.map((blockchain) => {
         return {
           id: blockchain,
           symbolSize: 20,
-        };
-      });
-    },
-    blockchainCategories() {
-      const data = [...new Set(this.txs.map((tx) => tx.blockchain))];
-      return data.map((b) => {
-        return {
-          name: b,
-          base: b,
+          category: blockchain,
+          name: blockchain,
+          label: {
+            show: true,
+          },
         };
       });
     },
@@ -54,35 +79,9 @@ export default {
           id: address,
           symbolSize: 3,
           category: this.blockchainAddress[address],
+          name: address,
         };
       });
-    },
-    blockchainAddress12() {
-      let nodes = {};
-      this.txs.forEach((tx) => {
-        const create_client = find(tx.events.events, {
-          action: "update_client",
-        });
-        if (create_client) {
-          const address = find(tx.events.events, "sender").sender;
-          nodes[address] = tx.blockchain;
-        }
-      });
-      return nodes;
-    },
-    blockchainAddress() {
-      let nodes = {};
-      this.txs.forEach((tx) => {
-        const create_client = find(tx.events.events, {
-          action: "create_client",
-        });
-        const send = find(tx.events.events, { action: "send" });
-        if (create_client || send) {
-          const address = find(tx.events.events, "sender").sender;
-          nodes[address] = tx.blockchain;
-        }
-      });
-      return nodes;
     },
     addressLinks() {
       let sends = this.txs.filter((tx) => {
@@ -99,8 +98,14 @@ export default {
         };
       });
     },
-    txs() {
-      return this.txsAll;
+    blockchainCategories() {
+      const data = [...new Set(this.txs.map((tx) => tx.blockchain))];
+      return data.map((b) => {
+        return {
+          name: b,
+          base: b,
+        };
+      });
     },
   },
   async mounted() {
@@ -109,26 +114,35 @@ export default {
       console.log(tx);
     });
     this.txsAll = (await axios.get(`${API}/txs`)).data;
-    const chart = echarts.init(document.getElementById("chart"));
-    window.onresize = chart.resize;
-    chart.setOption({
+    this.chart = echarts.init(document.getElementById("chart"));
+    this.chart.setOption({
       series: [
         {
           type: "graph",
           layout: "force",
           width: "100px",
           roam: true,
-          data: [...this.addressNodes],
-          links: [...this.addressLinks],
+          nodes: [...this.addressNodes, ...this.blockchainNodes],
+          links: [...this.addressLinks, ...this.blockchainAddressLinks],
           categories: [...this.blockchainCategories],
+          label: {
+            formatter: "{b}",
+            color: "rgba(255,255,255,.75)",
+            position: "top",
+          },
           force: {
             edgeLength: 5,
             repulsion: 20,
             gravity: 0.2,
           },
+          tooltip: {
+            position: "right",
+            formatter: "123",
+          },
         },
       ],
     });
+    window.onresize = this.chart.resize;
   },
 };
 </script>
