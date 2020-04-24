@@ -1,0 +1,54 @@
+<template>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    x="0px"
+    y="0px"
+    width="100%"
+    height="100%"
+    viewBox="0 0 64 64"
+  >
+    <g stroke-width="2" transform="translate(0, 0)">
+      <circle
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="square"
+        stroke-miterlimit="10"
+        cx="32"
+        cy="32"
+        r="30"
+        stroke-linejoin="miter"
+      ></circle>
+      <polygon
+        data-color="color-2"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="square"
+        stroke-miterlimit="10"
+        points="
+	46,18 37,37 18,46 27,27 "
+        stroke-linejoin="miter"
+      ></polygon>
+      <circle
+        data-color="color-2"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="square"
+        stroke-miterlimit="10"
+        cx="32"
+        cy="32"
+        r="1"
+        stroke-linejoin="miter"
+      ></circle>
+      <circle
+        data-color="color-2"
+        data-stroke="none"
+        cx="32"
+        cy="32"
+        r="1"
+        stroke-linejoin="miter"
+        stroke-linecap="square"
+      ></circle>
+    </g>
+  </svg>
+</template>

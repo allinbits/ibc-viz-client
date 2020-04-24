@@ -53,11 +53,12 @@ export default {
       return data.map((blockchain) => {
         return {
           id: blockchain,
-          symbolSize: 20,
+          symbolSize: 15,
           category: blockchain,
           name: blockchain,
           label: {
             show: true,
+            color: "rgba(255,255,255,.5)",
           },
         };
       });
@@ -118,6 +119,7 @@ export default {
     this.chart.setOption({
       series: [
         {
+          zoom: 2,
           type: "graph",
           layout: "force",
           width: "100px",
