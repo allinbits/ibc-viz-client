@@ -117,6 +117,18 @@ export default {
     this.txsAll = (await axios.get(`${API}/txs`)).data;
     this.chart = echarts.init(document.getElementById("chart"));
     this.chart.setOption({
+      legend: [{
+        type: "scroll",
+        pageIconColor: "#fff",
+        pageTextStyle: {color: "fff"},
+        selectedMode: "multiple",
+        textStyle: {
+          color: "#fff",
+          padding: 5
+        },
+        inactiveColor: "#fff",
+        data: [...this.blockchainCategories],
+      }],
       series: [
         {
           zoom: 2,
