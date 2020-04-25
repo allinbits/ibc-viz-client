@@ -43,7 +43,7 @@ export default {
           symbolSize: 6,
           lineStyle: {
             color: "source",
-            opacity: tx.type === "ibc_transfer" ? 1 : 0.2,
+            opacity: tx.type === "ibc_transfer" ? 1 : 0,
             curveness: 0.1,
           },
         };
@@ -67,7 +67,7 @@ export default {
       const unknown = {
         name: "unknown",
         base: "unknown",
-        opacity: 0.2,
+        opacity: 0,
         itemStyle: {
           color: "#fff",
         },
@@ -85,10 +85,10 @@ export default {
       return categories;
     },
     blockchainLinks() {
-      return this.txs.map((tx) => {
+      return Object.keys(this.addressBlockchainMap).map((addr) => {
         return {
-          source: tx.blockchain,
-          target: tx.sender,
+          source: this.addressBlockchainMap[addr],
+          target: addr,
           lineStyle: {
             color: "source",
             opacity: 0.2,
