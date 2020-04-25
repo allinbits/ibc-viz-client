@@ -30,6 +30,7 @@ export default {
       txs: [],
       socket: null,
       chart: null,
+      addressBlockchainMap: null,
     };
   },
   computed: {
@@ -60,13 +61,6 @@ export default {
           name: addr,
         };
       });
-    },
-    addressBlockchainMap() {
-      let map = {};
-      this.txs.forEach((tx) => {
-        map[tx.sender] = tx.blockchain;
-      });
-      return map;
     },
     blockchainCategories() {
       let categories = [...new Set(Object.values(this.addressBlockchainMap))];
@@ -125,6 +119,7 @@ export default {
       this.txs.push(tx);
     });
     this.txs.push(...(await axios.get(`${API}/transfers`)).data);
+    this.addressBlockchainMap = (await axios.get(`${API}/relations`)).data;
     this.chart = echarts.init(document.getElementById("chart"));
     this.chart.setOption({
       legend: [
