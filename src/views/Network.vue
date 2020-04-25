@@ -11,6 +11,19 @@ import io from "socket.io-client";
 
 const API = process.env.VUE_APP_API_URL;
 
+const stringToRGB = (string) => {
+  const hashCode = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return hash;
+  };
+  const i = hashCode(string);
+  let c = (i & 0x00ffffff).toString(16).toUpperCase();
+  return "00000".substring(0, 6 - c.length) + c;
+};
+
 export default {
   data: function() {
     return {
@@ -30,6 +43,7 @@ export default {
           lineStyle: {
             color: "source",
             opacity: tx.type === "ibc_transfer" ? 1 : 0.2,
+            curveness: 0.1,
           },
         };
       });
@@ -42,7 +56,7 @@ export default {
         return {
           id: addr,
           symbolSize: 3,
-          category: this.addressBlockchainMap[addr],
+          category: this.addressBlockchainMap[addr] || "unknown",
           name: addr,
         };
       });
@@ -55,13 +69,26 @@ export default {
       return map;
     },
     blockchainCategories() {
-      const cat = [...new Set(Object.values(this.addressBlockchainMap))];
-      return cat.map((c) => {
+      let categories = [...new Set(Object.values(this.addressBlockchainMap))];
+      const unknown = {
+        name: "unknown",
+        base: "unknown",
+        opacity: 0.2,
+        itemStyle: {
+          color: "#fff",
+        },
+      };
+      categories = categories.map((c) => {
         return {
           name: c,
           base: c,
+          itemStyle: {
+            color: `#${stringToRGB(c)}`,
+          },
         };
       });
+      categories.push(unknown);
+      return categories;
     },
     blockchainLinks() {
       return this.txs.map((tx) => {
