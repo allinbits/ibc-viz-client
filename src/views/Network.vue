@@ -19,12 +19,6 @@ export default {
       chart: null,
     };
   },
-  // beforeRouteEnter(to, from, next) {
-  //   if (to.chart) {
-  //     to.chart.resize();
-  //   }
-  //   next();
-  // },
   computed: {
     txs() {
       return this.txsAll;

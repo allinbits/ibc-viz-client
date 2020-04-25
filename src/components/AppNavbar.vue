@@ -27,7 +27,7 @@
   margin-right: auto;
 }
 .icon {
-  stroke: rgba(255, 255, 255, 0.45);
+  stroke: rgba(255, 255, 255, 0.35);
   height: 2.5rem;
   width: 2.5rem;
   padding: 0.25rem;
@@ -43,7 +43,7 @@
   outline: none;
 }
 .router-link-exact-active .icon {
-  stroke: rgba(255, 255, 255, 0.65);
+  stroke: rgba(255, 255, 255, 0.85);
 }
 </style>
 
