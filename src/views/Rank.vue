@@ -66,11 +66,11 @@ const API = process.env.VUE_APP_API_URL;
 
 export default {
   components: {
-    IconCircle,
+    IconCircle
   },
   data: function() {
     return {
-      blockchains: [],
+      blockchains: []
     };
   },
   computed: {
@@ -80,16 +80,16 @@ export default {
         ["status", "txs_count"],
         ["desc", "desc"]
       );
-    },
+    }
   },
   async created() {
-    this.blockchains = (await axios.get(`${API}/blockchains`)).data.map((b) => {
+    this.blockchains = (await axios.get(`${API}/blockchains`)).data.map(b => {
       return {
-        ...b,
-        status: null,
+        blockchain: b,
+        status: null
       };
     });
-    this.blockchains.forEach(async (b) => {
+    this.blockchains.forEach(async b => {
       const item = find(this.blockchains, ["blockchain", b.blockchain]);
       let status;
       try {
@@ -100,6 +100,6 @@ export default {
       }
       this.$set(item, "status", status);
     });
-  },
+  }
 };
 </script>
