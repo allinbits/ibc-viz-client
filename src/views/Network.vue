@@ -4,7 +4,7 @@
 
 <script>
 import axios from "axios";
-import echarts from "echarts";
+import ForceGraph3D from "3d-force-graph";
 import { v4 as uuidv4 } from "uuid";
 import { find, groupBy } from "lodash";
 import io from "socket.io-client";
@@ -42,44 +42,11 @@ export default {
     }
   },
   computed: {
-    chartOptions() {
+    chartData() {
       return {
-        legend: [
-          {
-            type: "scroll",
-            pageIconColor: "#fff",
-            pageTextStyle: { color: "fff" },
-            selectedMode: "multiple",
-            textStyle: {
-              color: "#fff",
-              padding: 5
-            },
-            inactiveColor: "#fff",
-            data: [...this.blockchainCategories]
-          }
-        ],
-        series: [
-          {
-            zoom: 2,
-            type: "graph",
-            layout: "force",
-            width: "100px",
-            roam: true,
-            nodes: [...this.addressNodes, ...this.blockchainNodes],
-            links: [...this.addressLinks, ...this.blockchainLinks],
-            categories: [...this.blockchainCategories],
-            label: {
-              formatter: "{b}",
-              color: "rgba(255,255,255,.75)",
-              position: "top"
-            },
-            force: {
-              edgeLength: 10,
-              repulsion: 40,
-              gravity: 0.1
-            }
-          }
-        ]
+        nodes: [...this.addressNodes, ...this.blockchainNodes],
+        links: [...this.addressLinks, ...this.blockchainLinks]
+        // links: [...this.addressLinks]
       };
     },
     txsSendPacket() {
@@ -100,9 +67,8 @@ export default {
       return unique.map(addr => {
         return {
           id: addr,
-          symbolSize: 3,
-          name: addr,
-          category: this.realtionsAll[addr] || "unknown"
+          val: addr,
+          name: addr
         };
       });
     },
@@ -113,18 +79,11 @@ export default {
           .value;
         return {
           source: tx.sender,
-          target: tx.receiver,
-          symbol: [null, "arrow"],
-          symbolSize: 6,
-          lineStyle: {
-            color: "source",
-            curveness: 0.2,
-            opacity: 1
-          }
+          target: tx.receiver
         };
       });
     },
-    realtionsAll() {
+    relationsAll() {
       let data = {};
       this.txs.forEach(tx => {
         Object.keys(tx.events).forEach(i => {
@@ -164,28 +123,26 @@ export default {
       return categories;
     },
     blockchainLinks() {
-      return Object.keys(this.realtionsAll).map(addr => {
-        return {
-          source: this.realtionsAll[addr],
-          target: addr,
-          lineStyle: {
-            color: "source",
-            opacity: 0.2
-          }
-        };
+      let links = [];
+      Object.keys(this.relationsAll).map(addr => {
+        links.push({
+          source: this.relationsAll[addr],
+          target: addr
+        });
       });
+      links = links.filter(link => {
+        console.log("link.target", link.target);
+        return find(this.addressNodes, { id: link.target });
+      });
+      return links;
     },
     blockchainNodes() {
       return this.blockchains.map(c => {
         return {
           id: c,
-          symbolSize: 15,
-          category: c,
+          val: c,
           name: c,
-          label: {
-            show: true,
-            color: "rgba(255,255,255,.5)"
-          }
+          nodeRelSize: 16
         };
       });
     }
@@ -199,9 +156,11 @@ export default {
     this.txs = (await axios.get(`${API}/txs/ibc`)).data;
     this.relations = (await axios.get(`${API}/relations`)).data;
     this.blockchains = (await axios.get(`${API}/blockchains`)).data;
-    this.chart = echarts.init(document.getElementById("chart"));
-    this.chart.setOption(this.chartOptions);
-    window.onresize = this.chart.resize;
+
+    console.log("blockchainLinks", this.blockchainLinks);
+
+    let graph = ForceGraph3D().nodeAutoColorBy("group");
+    graph(document.getElementById("chart")).graphData(this.chartData);
   }
 };
 </script>

@@ -1,6 +1,13 @@
 <template>
-  <div id="chart" style="width: 100vw; height: 100vh"></div>
+  <div id="chart"></div>
 </template>
+
+<style scoped>
+#chart {
+  width: 100vw;
+  height: calc(100vh - 3rem);
+}
+</style>
 
 <script>
 import axios from "axios";
@@ -11,154 +18,197 @@ import io from "socket.io-client";
 
 const API = process.env.VUE_APP_API_URL;
 
+const stringToRGB = string => {
+  const hashCode = str => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return hash;
+  };
+  const i = hashCode(string);
+  let c = (i & 0x00ffffff).toString(16).toUpperCase();
+  return "00000".substring(0, 6 - c.length) + c;
+};
+
 export default {
   data: function() {
     return {
-      txsAll: [],
+      txs: [],
       socket: null,
       chart: null,
+      relations: {},
+      blockchains: []
     };
   },
+  watch: {
+    txsSendPacket() {
+      if (this.chart) {
+        this.chart.setOption(this.chartOptions);
+      }
+    }
+  },
   computed: {
-    txs() {
-      return this.txsAll;
+    chartOptions() {
+      return {
+        legend: [
+          {
+            type: "scroll",
+            pageIconColor: "#fff",
+            pageTextStyle: { color: "fff" },
+            selectedMode: "multiple",
+            textStyle: {
+              color: "#fff",
+              padding: 5
+            },
+            inactiveColor: "#fff",
+            data: [...this.blockchainCategories]
+          }
+        ],
+        series: [
+          {
+            zoom: 2,
+            type: "graph",
+            layout: "force",
+            width: "100px",
+            roam: true,
+            nodes: [...this.addressNodes, ...this.blockchainNodes],
+            links: [...this.addressLinks, ...this.blockchainLinks],
+            categories: [...this.blockchainCategories],
+            label: {
+              formatter: "{b}",
+              color: "rgba(255,255,255,.75)",
+              position: "top"
+            },
+            force: {
+              edgeLength: 10,
+              repulsion: 40,
+              gravity: 0.1
+            }
+          }
+        ]
+      };
     },
-    blockchainAddress() {
-      let nodes = {};
-      this.txs.forEach((tx) => {
-        const create_client = find(tx.events.events, {
-          action: "create_client",
-        });
-        const send = find(tx.events.events, { action: "send" });
-        if (create_client || send) {
-          const address = find(tx.events.events, "sender").sender;
-          nodes[address] = tx.blockchain;
-        }
-      });
-      return nodes;
-    },
-    blockchainAddressLinks() {
-      return Object.keys(this.blockchainAddress).map((address) => {
-        return {
-          source: this.blockchainAddress[address],
-          target: address,
-          lineStyle: {
-            color: "source",
-          },
-        };
-      });
-    },
-    blockchainNodes() {
-      const data = [...new Set(this.txs.map((tx) => tx.blockchain))];
-      return data.map((blockchain) => {
-        return {
-          id: blockchain,
-          symbolSize: 15,
-          category: blockchain,
-          name: blockchain,
-          label: {
-            show: true,
-            color: "rgba(255,255,255,.5)",
-          },
-        };
+    txsSendPacket() {
+      return this.txs.filter(tx => {
+        return find(tx.events, { type: "send_packet" });
       });
     },
     addressNodes() {
       let nodes = [];
-      this.txs.forEach((tx) => {
-        const send = find(tx.events.events, { action: "send" });
-        if (send) {
-          const recipient = find(tx.events.events, "recipient").recipient;
-          const sender = find(tx.events.events, "sender").sender;
-          nodes.push(recipient);
-          nodes.push(sender);
-        }
+      this.txsSendPacket.forEach(tx => {
+        const send_packet = find(tx.events, { type: "send_packet" }).attributes;
+        const t = JSON.parse(find(send_packet, { key: "packet_data" }).val)
+          .value;
+        nodes.push(t.receiver);
+        nodes.push(t.sender);
       });
-      nodes = [...new Set(nodes)];
-      return nodes.map((address) => {
+      const unique = [...new Set(nodes)];
+      return unique.map(addr => {
         return {
-          id: address,
+          id: addr,
           symbolSize: 3,
-          category: this.blockchainAddress[address],
-          name: address,
+          name: addr,
+          category: this.relationsAll[addr] || "unknown"
         };
       });
     },
     addressLinks() {
-      let sends = this.txs.filter((tx) => {
-        return find(tx.events.events, { action: "send" });
-      });
-      return sends.map((tx) => {
+      return this.txsSendPacket.map(t => {
+        const send_packet = find(t.events, { type: "send_packet" }).attributes;
+        const tx = JSON.parse(find(send_packet, { key: "packet_data" }).val)
+          .value;
         return {
-          target: find(tx.events.events, "recipient").recipient,
-          source: find(tx.events.events, "sender").sender,
+          source: tx.sender,
+          target: tx.receiver,
+          symbol: [null, "arrow"],
+          symbolSize: 6,
           lineStyle: {
             color: "source",
-            curveness: 0.3,
-          },
+            curveness: 0.2,
+            opacity: 1
+          }
         };
       });
+    },
+    relationsAll() {
+      let data = {};
+      this.txs.forEach(tx => {
+        Object.keys(tx.events).forEach(i => {
+          const ev = tx.events[i];
+          if (ev.type === "recv_packet") {
+            const packet_data = find(ev.attributes, { key: "packet_data" });
+            const addr = JSON.parse(packet_data.val).value.receiver;
+            data[addr] = tx.domain;
+          }
+          if (ev.type === "send_packet") {
+            const packet_data = find(ev.attributes, { key: "packet_data" });
+            const addr = JSON.parse(packet_data.val).value.sender;
+            data[addr] = tx.domain;
+          }
+        });
+      });
+      return { ...data, ...this.relations };
     },
     blockchainCategories() {
-      const data = [...new Set(this.txs.map((tx) => tx.blockchain))];
-      return data.map((b) => {
+      let categories = this.blockchains.map(name => {
         return {
-          name: b,
-          base: b,
+          name,
+          base: name,
+          itemStyle: {
+            color: `#${stringToRGB(name)}`
+          }
+        };
+      });
+      const unknown = {
+        name: "unknown",
+        base: "unknown",
+        itemStyle: {
+          color: "#333"
+        }
+      };
+      categories.push(unknown);
+      return categories;
+    },
+    blockchainLinks() {
+      return Object.keys(this.relationsAll).map(addr => {
+        return {
+          source: this.relationsAll[addr],
+          target: addr,
+          lineStyle: {
+            color: "source",
+            opacity: 0.2
+          }
         };
       });
     },
+    blockchainNodes() {
+      return this.blockchains.map(c => {
+        return {
+          id: c,
+          symbolSize: 15,
+          category: c,
+          name: c,
+          label: {
+            show: true,
+            color: "rgba(255,255,255,.5)"
+          }
+        };
+      });
+    }
   },
   async mounted() {
     this.socket = io(`${API}`);
-    this.socket.on("tx", (tx) => {
+    this.socket.on("tx", tx => {
       console.log(tx);
+      this.txs.push(tx);
     });
-    this.txsAll = (await axios.get(`${API}/txs`)).data;
+    this.txs = (await axios.get(`${API}/txs/ibc`)).data;
+    this.relations = (await axios.get(`${API}/relations`)).data;
+    this.blockchains = (await axios.get(`${API}/blockchains`)).data;
     this.chart = echarts.init(document.getElementById("chart"));
-    this.chart.setOption({
-      legend: [
-        {
-          type: "scroll",
-          pageIconColor: "#fff",
-          pageTextStyle: { color: "fff" },
-          selectedMode: "multiple",
-          textStyle: {
-            color: "#fff",
-            padding: 5,
-          },
-          inactiveColor: "#fff",
-          data: [...this.blockchainCategories],
-        },
-      ],
-      series: [
-        {
-          zoom: 2,
-          type: "graph",
-          layout: "force",
-          width: "100px",
-          roam: true,
-          nodes: [...this.addressNodes, ...this.blockchainNodes],
-          links: [...this.addressLinks, ...this.blockchainAddressLinks],
-          categories: [...this.blockchainCategories],
-          label: {
-            formatter: "{b}",
-            color: "rgba(255,255,255,.75)",
-            position: "top",
-          },
-          force: {
-            edgeLength: 5,
-            repulsion: 20,
-            gravity: 0.2,
-          },
-          tooltip: {
-            position: "right",
-            formatter: "123",
-          },
-        },
-      ],
-    });
+    this.chart.setOption(this.chartOptions);
     window.onresize = this.chart.resize;
-  },
+  }
 };
 </script>
