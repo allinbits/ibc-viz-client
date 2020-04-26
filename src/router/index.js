@@ -1,6 +1,6 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Network from "../views/Network.vue";
+import Network from "../views/Network3D.vue";
 import Rank from "../views/Rank.vue";
 
 Vue.use(VueRouter);
@@ -8,18 +8,18 @@ Vue.use(VueRouter);
 const routes = [
   {
     path: "/",
-    component: Network,
+    component: Network
   },
   {
     path: "/rank",
-    component: Rank,
-  },
+    component: Rank
+  }
 ];
 
 const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
-  routes,
+  routes
 });
 
 export default router;

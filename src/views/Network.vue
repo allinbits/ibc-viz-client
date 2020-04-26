@@ -11,7 +11,7 @@
 
 <script>
 import axios from "axios";
-import ForceGraph3D from "3d-force-graph";
+import echarts from "echarts";
 import { v4 as uuidv4 } from "uuid";
 import { find, groupBy } from "lodash";
 import io from "socket.io-client";
@@ -49,11 +49,44 @@ export default {
     }
   },
   computed: {
-    chartData() {
+    chartOptions() {
       return {
-        nodes: [...this.addressNodes, ...this.blockchainNodes],
-        links: [...this.addressLinks, ...this.blockchainLinks]
-        // links: [...this.addressLinks]
+        legend: [
+          {
+            type: "scroll",
+            pageIconColor: "#fff",
+            pageTextStyle: { color: "fff" },
+            selectedMode: "multiple",
+            textStyle: {
+              color: "#fff",
+              padding: 5
+            },
+            inactiveColor: "#fff",
+            data: [...this.blockchainCategories]
+          }
+        ],
+        series: [
+          {
+            zoom: 2,
+            type: "graph",
+            layout: "force",
+            width: "100px",
+            roam: true,
+            nodes: [...this.addressNodes, ...this.blockchainNodes],
+            links: [...this.addressLinks, ...this.blockchainLinks],
+            categories: [...this.blockchainCategories],
+            label: {
+              formatter: "{b}",
+              color: "rgba(255,255,255,.75)",
+              position: "top"
+            },
+            force: {
+              edgeLength: 10,
+              repulsion: 40,
+              gravity: 0.1
+            }
+          }
+        ]
       };
     },
     txsSendPacket() {
@@ -74,10 +107,9 @@ export default {
       return unique.map(addr => {
         return {
           id: addr,
-          val: addr,
+          symbolSize: 3,
           name: addr,
-          type: "address",
-          color: `#${stringToRGB(this.relationsAll[addr] || "unknown")}`
+          category: this.relationsAll[addr] || "unknown"
         };
       });
     },
@@ -89,8 +121,13 @@ export default {
         return {
           source: tx.sender,
           target: tx.receiver,
-          type: "address"
-          // color: `#${stringToRGB(tx.sender)}`
+          symbol: [null, "arrow"],
+          symbolSize: 6,
+          lineStyle: {
+            color: "source",
+            curveness: 0.2,
+            opacity: 1
+          }
         };
       });
     },
@@ -113,33 +150,51 @@ export default {
       });
       return { ...data, ...this.relations };
     },
+    blockchainCategories() {
+      let categories = this.blockchains.map(name => {
+        return {
+          name,
+          base: name,
+          itemStyle: {
+            color: `#${stringToRGB(name)}`
+          }
+        };
+      });
+      const unknown = {
+        name: "unknown",
+        base: "unknown",
+        itemStyle: {
+          color: "#333"
+        }
+      };
+      categories.push(unknown);
+      return categories;
+    },
     blockchainLinks() {
-      let links = [];
-      Object.keys(this.relationsAll).map(addr => {
-        links.push({
+      return Object.keys(this.relationsAll).map(addr => {
+        return {
           source: this.relationsAll[addr],
           target: addr,
-          type: "blockchain"
-        });
+          lineStyle: {
+            color: "source",
+            opacity: 0.2
+          }
+        };
       });
-      links = links.filter(link => {
-        // console.log("link.target", link.target);
-        return find(this.addressNodes, { id: link.target });
-      });
-      return links;
     },
     blockchainNodes() {
-      let nodes = [];
-      this.blockchains.map(c => {
-        nodes.push({
+      return this.blockchains.map(c => {
+        return {
           id: c,
-          val: c,
+          symbolSize: 15,
+          category: c,
           name: c,
-          type: "blockchain",
-          color: `#${stringToRGB(c)}`
-        });
+          label: {
+            show: true,
+            color: "rgba(255,255,255,.5)"
+          }
+        };
       });
-      return nodes;
     }
   },
   async mounted() {
@@ -151,51 +206,9 @@ export default {
     this.txs = (await axios.get(`${API}/txs/ibc`)).data;
     this.relations = (await axios.get(`${API}/relations`)).data;
     this.blockchains = (await axios.get(`${API}/blockchains`)).data;
-
-    //console.log("blockchainLinks", this.blockchainLinks);
-
-    let graph = ForceGraph3D()
-      .forceEngine("ngraph")
-      .nodeAutoColorBy("color")
-      .nodeLabel(node => {
-        if (node.type === "blockchain") {
-          return `[zone] ${node.id}`;
-        }
-        return node.id;
-      })
-      .nodeResolution(node => {
-        if (node.type === "address") {
-          return 0.25;
-        }
-        return 16;
-      })
-      .nodeVal(node => {
-        if (node.type === "address") {
-          return 0.25;
-        }
-        return 16;
-      })
-      .linkCurvature(link => {
-        if (link.type === "address") {
-          return 0.25;
-        }
-        return 0;
-      })
-      .linkDirectionalArrowLength(link => {
-        if (link.type === "address") {
-          return 2;
-        }
-        return 0;
-      })
-      .linkOpacity(0.5)
-      .linkWidth(link => {
-        if (link.type === "address") {
-          return 0.5;
-        }
-        return 0.25;
-      });
-
-    graph(document.getElementById("chart")).graphData(this.chartData);
+    this.chart = echarts.init(document.getElementById("chart"));
+    this.chart.setOption(this.chartOptions);
+    window.onresize = this.chart.resize;
   }
 };
 </script>
