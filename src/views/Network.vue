@@ -1,6 +1,13 @@
 <template>
-  <div id="chart" style="width: 100vw; height: 100vh"></div>
+  <div id="chart"></div>
 </template>
+
+<style scoped>
+#chart {
+  width: 100vw;
+  height: calc(100vh - 3rem);
+}
+</style>
 
 <script>
 import axios from "axios";
@@ -68,7 +75,9 @@ export default {
         return {
           id: addr,
           val: addr,
-          name: addr
+          name: addr,
+          type: "address",
+          color: `#${stringToRGB(this.relationsAll[addr] || "unknown")}`
         };
       });
     },
@@ -79,7 +88,9 @@ export default {
           .value;
         return {
           source: tx.sender,
-          target: tx.receiver
+          target: tx.receiver,
+          type: "address"
+          // color: `#${stringToRGB(tx.sender)}`
         };
       });
     },
@@ -102,49 +113,33 @@ export default {
       });
       return { ...data, ...this.relations };
     },
-    blockchainCategories() {
-      let categories = this.blockchains.map(name => {
-        return {
-          name,
-          base: name,
-          itemStyle: {
-            color: `#${stringToRGB(name)}`
-          }
-        };
-      });
-      const unknown = {
-        name: "unknown",
-        base: "unknown",
-        itemStyle: {
-          color: "#333"
-        }
-      };
-      categories.push(unknown);
-      return categories;
-    },
     blockchainLinks() {
       let links = [];
       Object.keys(this.relationsAll).map(addr => {
         links.push({
           source: this.relationsAll[addr],
-          target: addr
+          target: addr,
+          type: "blockchain"
         });
       });
       links = links.filter(link => {
-        console.log("link.target", link.target);
+        // console.log("link.target", link.target);
         return find(this.addressNodes, { id: link.target });
       });
       return links;
     },
     blockchainNodes() {
-      return this.blockchains.map(c => {
-        return {
+      let nodes = [];
+      this.blockchains.map(c => {
+        nodes.push({
           id: c,
           val: c,
           name: c,
-          nodeRelSize: 16
-        };
+          type: "blockchain",
+          color: `#${stringToRGB(c)}`
+        });
       });
+      return nodes;
     }
   },
   async mounted() {
@@ -157,9 +152,49 @@ export default {
     this.relations = (await axios.get(`${API}/relations`)).data;
     this.blockchains = (await axios.get(`${API}/blockchains`)).data;
 
-    console.log("blockchainLinks", this.blockchainLinks);
+    //console.log("blockchainLinks", this.blockchainLinks);
 
-    let graph = ForceGraph3D().nodeAutoColorBy("group");
+    let graph = ForceGraph3D()
+      .forceEngine("ngraph")
+      .nodeAutoColorBy("color")
+      .nodeLabel(node => {
+        if (node.type === "blockchain") {
+          return `[zone] ${node.id}`;
+        }
+        return node.id;
+      })
+      .nodeResolution(node => {
+        if (node.type === "address") {
+          return 0.25;
+        }
+        return 16;
+      })
+      .nodeVal(node => {
+        if (node.type === "address") {
+          return 0.25;
+        }
+        return 16;
+      })
+      .linkCurvature(link => {
+        if (link.type === "address") {
+          return 0.25;
+        }
+        return 0;
+      })
+      .linkDirectionalArrowLength(link => {
+        if (link.type === "address") {
+          return 2;
+        }
+        return 0;
+      })
+      .linkOpacity(0.5)
+      .linkWidth(link => {
+        if (link.type === "address") {
+          return 0.5;
+        }
+        return 0.25;
+      });
+
     graph(document.getElementById("chart")).graphData(this.chartData);
   }
 };
