@@ -102,7 +102,7 @@ export default {
           id: addr,
           symbolSize: 3,
           name: addr,
-          category: this.realtionsAll[addr] || "unknown"
+          category: this.relationsAll[addr] || "unknown"
         };
       });
     },
@@ -124,7 +124,7 @@ export default {
         };
       });
     },
-    realtionsAll() {
+    relationsAll() {
       let data = {};
       this.txs.forEach(tx => {
         Object.keys(tx.events).forEach(i => {
@@ -164,9 +164,9 @@ export default {
       return categories;
     },
     blockchainLinks() {
-      return Object.keys(this.realtionsAll).map(addr => {
+      return Object.keys(this.relationsAll).map(addr => {
         return {
-          source: this.realtionsAll[addr],
+          source: this.relationsAll[addr],
           target: addr,
           lineStyle: {
             color: "source",
