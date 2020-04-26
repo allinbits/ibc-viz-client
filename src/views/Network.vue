@@ -1,6 +1,13 @@
 <template>
-  <div id="chart" style="width: 100vw; height: 100vh"></div>
+  <div id="chart"></div>
 </template>
+
+<style scoped>
+#chart {
+  width: 100vw;
+  height: calc(100vh - 3rem);
+}
+</style>
 
 <script>
 import axios from "axios";
