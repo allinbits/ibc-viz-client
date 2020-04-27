@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="container">
-      <app-header class="header" v-if="$route.fullPath === '/'"/>
+    <div :class="['container', `position__fixed__${!!fixed}`]">
+      <app-header class="header"/>
       <keep-alive>
         <router-view />
       </keep-alive>
@@ -15,6 +15,8 @@
 <style scoped>
 .container {
   background: rgb(21, 21, 21);
+}
+.position__fixed__false.container {
   padding-bottom: 3rem;
 }
 .navbar {
@@ -22,13 +24,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-}
-.header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin: 2rem 0;
   z-index: 2000;
+}
+.position__fixed__true .header {
+  position: fixed;
+  z-index: 2000;
+}
+.position__fixed__false .header {
+  position: relative;
 }
 </style>
 
@@ -40,6 +43,11 @@ export default {
   components: {
     AppNavbar,
     AppHeader
+  },
+  computed: {
+    fixed() {
+      return this.$route.fullPath === "/";
+    }
   }
 };
 </script>

@@ -5,7 +5,10 @@
 <style scoped>
 #chart {
   width: 100vw;
-  height: calc(100vh - 3rem);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
 }
 </style>
 
@@ -53,6 +56,9 @@ export default {
       return {
         legend: [
           {
+            bottom: 65,
+            left: 10,
+            right: 10,
             type: "scroll",
             pageIconColor: "#fff",
             pageTextStyle: { color: "fff" },
