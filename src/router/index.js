@@ -1,6 +1,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Network from "../views/Network3D.vue";
+import Network from "../views/Network.vue";
+import Network3D from "../views/Network3D.vue";
 import Rank from "../views/Rank.vue";
 import About from "../views/About.vue";
 
@@ -10,6 +11,10 @@ const routes = [
   {
     path: "/",
     component: Network
+  },
+  {
+    path: "/3d",
+    component: Network3D
   },
   {
     path: "/rank",

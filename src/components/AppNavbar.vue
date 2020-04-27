@@ -5,6 +5,9 @@
         <router-link to="/">
           <icon-network class="icon" />
         </router-link>
+        <router-link to="/3d">
+          <icon-world class="icon" />
+        </router-link>
         <router-link to="/rank">
           <icon-list class="icon" />
         </router-link>
@@ -27,7 +30,8 @@
   margin-right: auto;
 }
 .icon {
-  stroke: rgba(255, 255, 255, 0.35);
+  stroke: rgb(255, 255, 255);
+  opacity: 0.35;
   height: 2.5rem;
   width: 2.5rem;
   padding: 0.25rem;
@@ -43,18 +47,21 @@
   outline: none;
 }
 .router-link-exact-active .icon {
-  stroke: rgba(255, 255, 255, 0.85);
+  stroke: rgb(255, 255, 255);
+  opacity: 0.85;
 }
 </style>
 
 <script>
 import IconNetwork from "@/components/IconNetwork.vue";
+import IconWorld from "@/components/IconWorld.vue";
 import IconList from "@/components/IconList.vue";
 
 export default {
   components: {
     IconNetwork,
-    IconList
+    IconList,
+    IconWorld
   }
 };
 </script>
