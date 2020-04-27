@@ -154,16 +154,9 @@ export default {
     }
   },
   async mounted() {
-    this.socket = io(`${API}`);
-    this.socket.on("tx", tx => {
-      console.log(tx);
-      this.txs.push(tx);
-    });
     this.txs = (await axios.get(`${API}/txs/ibc`)).data;
     this.relations = (await axios.get(`${API}/relations`)).data;
     this.blockchains = (await axios.get(`${API}/blockchains`)).data;
-
-    //console.log("blockchainLinks", this.blockchainLinks);
 
     let distance = 500;
 
@@ -210,17 +203,16 @@ export default {
         return 0.25;
       });
 
-    graph.d3Force("link").distance(link => {
-      if (link.type === "address") {
-        return 10;
-      }
-      return 1;
-    });
-    graph.numDimensions(3);
-
     graph(document.getElementById("chart")).graphData(this.chartData);
     graph.scene().add(meshSkybox);
     this.modifyControls(graph.controls());
+
+    this.socket = io(`${API}`);
+    this.socket.on("tx", tx => {
+      console.log(tx);
+      this.txs.push(tx);
+      graph.numDimensions(3);
+    });
   }
 };
 </script>
