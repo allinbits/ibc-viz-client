@@ -1,5 +1,5 @@
-<template
-  ><svg
+<template>
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     x="0px"
@@ -8,7 +8,6 @@
     height="48"
     viewBox="0 0 48 48"
   >
-    <title>{{ title }}</title>
     <g stroke-width="2" transform="translate(0, 0)">
       <path
         fill="none"
@@ -34,24 +33,7 @@
 	c0-1.375,3-5,3-5s2.458-0.812,3.208-0.625s2.167,1.062,2.167,1.062s2.812,0.25,3.875,0.812l1.438,1.312
 	C36.062,22.938,39.625,24.25,40.125,25.438z"
       />
-      <circle
-        fill="none"
-        stroke="#ffffff"
-        stroke-miterlimit="10"
-        cx="24"
-        cy="24"
-        r="22"
-      />
-    </g></svg
-></template>
-
-<script>
-export default {
-  props: {
-    title: {
-      type: String,
-      default: "world"
-    }
-  }
-};
-</script>
+      <circle fill="none" stroke-miterlimit="10" cx="24" cy="24" r="22" />
+    </g>
+  </svg>
+</template>

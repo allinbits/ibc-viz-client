@@ -2,14 +2,17 @@
   <div>
     <div class="wrapper">
       <div class="container">
-        <router-link to="/">
+        <router-link to="/" class="button">
           <icon-network class="icon" />
+          <div>Graph</div>
         </router-link>
-        <router-link to="/3d">
+        <router-link to="/3d" class="button">
           <icon-world class="icon" />
+          <div>Universe</div>
         </router-link>
-        <router-link to="/rank">
+        <router-link to="/rank" class="button">
           <icon-list class="icon" />
+          <div>rank</div>
         </router-link>
       </div>
     </div>
@@ -29,13 +32,26 @@
   margin-left: auto;
   margin-right: auto;
 }
-.icon {
-  stroke: rgb(255, 255, 255);
-  opacity: 0.35;
-  height: 2.5rem;
-  width: 2.5rem;
+.button {
   padding: 0.25rem;
   margin: 0.5rem;
+  display: flex;
+  align-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: "Montserrat", sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+.icon {
+  stroke: rgb(255, 255, 255, 0.35);
+  height: 2.5rem;
+  width: 2.5rem;
+  margin-bottom: 0.35rem;
   border-radius: 50%;
   display: block;
   transition: all 0.1s;
@@ -46,8 +62,11 @@
 .router-link {
   outline: none;
 }
+.router-link-exact-active.button {
+  color: rgba(255, 255, 255, 1);
+}
 .router-link-exact-active .icon {
-  opacity: 0.85;
+  stroke: rgb(255, 255, 255, 0.85);
 }
 </style>
 
@@ -60,7 +79,7 @@ export default {
   components: {
     IconNetwork,
     IconList,
-    IconWorld
-  }
+    IconWorld,
+  },
 };
 </script>
