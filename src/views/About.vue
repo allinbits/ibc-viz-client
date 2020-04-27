@@ -3,9 +3,52 @@
     <div class="wrapper">
       <transition name="zoom">
         <div class="container" v-if="show">
-          <div class="p">This is a live visualization of the current Game of Zones testnet, built by a team at All in Bits Inc.</div>
-          <div class="p">The large circles are sovereign blockchains, and the lines are inter-blockchain transactions.</div>
-          <a class="button" target="_blank" rel="noopener" href="https://goz.cosmosnetwork.dev/">Learn more about GoZ →</a>
+          <div class="p">
+            This is a live visualization of the current Game of Zones network,
+            built by
+            <a href="https://twitter.com/fadeev" target="_blank" rel="noopener"
+              >Denis Fadeev</a
+            >
+            and the team at All in Bits Inc.
+          </div>
+          <div class="p">
+            The large circles are sovereign blockchains, and the lines are
+            inter-blockchain transactions.
+          </div>
+          <div class="p">
+            Source, client:
+            <a
+              href="https://github.com/allinbits/ibc-viz-client"
+              target="_blank"
+              rel="noopener"
+              >ibc-viz-client</a
+            >
+          </div>
+          <div class="p">
+            Source, server:
+            <a
+              href="https://github.com/allinbits/ibc-viz-server"
+              target="_blank"
+              rel="noopener"
+              >ibc-viz-client</a
+            >
+          </div>
+          <div class="buttons">
+            <a
+              class="button"
+              target="_blank"
+              rel="noopener"
+              href="https://cosmos.network/"
+              >Learn more about Cosmos Network →</a
+            >
+            <a
+              class="button"
+              target="_blank"
+              rel="noopener"
+              href="https://goz.cosmosnetwork.dev/"
+              >Learn more about GoZ →</a
+            >
+          </div>
         </div>
       </transition>
     </div>
@@ -13,6 +56,14 @@
 </template>
 
 <style scoped>
+a {
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.2);
+}
+a:active {
+  opacity: 0.75;
+}
 .wrapper {
   margin: 13vh 1rem 0;
 }
@@ -39,7 +90,7 @@
   text-decoration: none;
   border-radius: 0.25rem;
   user-select: none;
-  transform: opacity 0.1s;
+  transition: all 0.1s;
 }
 .button:active {
   opacity: 0.8;
@@ -61,11 +112,11 @@
 export default {
   data: function() {
     return {
-      show: null
+      show: null,
     };
   },
   mounted() {
     this.show = true;
-  }
+  },
 };
 </script>
