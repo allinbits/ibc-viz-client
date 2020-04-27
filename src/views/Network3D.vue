@@ -20,8 +20,8 @@ import io from "socket.io-client";
 
 const API = process.env.VUE_APP_API_URL;
 
-const stringToRGB = string => {
-  const hashCode = str => {
+const stringToRGB = (string) => {
+  const hashCode = (str) => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -34,13 +34,14 @@ const stringToRGB = string => {
 };
 
 export default {
+  name: "network3d",
   data: function() {
     return {
       txs: [],
       socket: null,
       chart: null,
       relations: {},
-      blockchains: []
+      blockchains: [],
     };
   },
   watch: {
@@ -48,24 +49,24 @@ export default {
       if (this.chart) {
         this.chart.setOption(this.chartOptions);
       }
-    }
+    },
   },
   computed: {
     chartData() {
       return {
         nodes: [...this.addressNodes, ...this.blockchainNodes],
-        links: [...this.addressLinks, ...this.blockchainLinks]
+        links: [...this.addressLinks, ...this.blockchainLinks],
         // links: [...this.addressLinks]
       };
     },
     txsSendPacket() {
-      return this.txs.filter(tx => {
+      return this.txs.filter((tx) => {
         return find(tx.events, { type: "send_packet" });
       });
     },
     addressNodes() {
       let nodes = [];
-      this.txsSendPacket.forEach(tx => {
+      this.txsSendPacket.forEach((tx) => {
         const send_packet = find(tx.events, { type: "send_packet" }).attributes;
         const t = JSON.parse(find(send_packet, { key: "packet_data" }).val)
           .value;
@@ -73,33 +74,33 @@ export default {
         nodes.push(t.sender);
       });
       const unique = [...new Set(nodes)];
-      return unique.map(addr => {
+      return unique.map((addr) => {
         return {
           id: addr,
           val: addr,
           name: addr,
           type: "address",
-          color: `#${stringToRGB(this.relationsAll[addr] || "unknown")}`
+          color: `#${stringToRGB(this.relationsAll[addr] || "unknown")}`,
         };
       });
     },
     addressLinks() {
-      return this.txsSendPacket.map(t => {
+      return this.txsSendPacket.map((t) => {
         const send_packet = find(t.events, { type: "send_packet" }).attributes;
         const tx = JSON.parse(find(send_packet, { key: "packet_data" }).val)
           .value;
         return {
           source: tx.sender,
           target: tx.receiver,
-          type: "address"
+          type: "address",
           // color: `#${stringToRGB(tx.sender)}`
         };
       });
     },
     relationsAll() {
       let data = {};
-      this.txs.forEach(tx => {
-        Object.keys(tx.events).forEach(i => {
+      this.txs.forEach((tx) => {
+        Object.keys(tx.events).forEach((i) => {
           const ev = tx.events[i];
           if (ev.type === "recv_packet") {
             const packet_data = find(ev.attributes, { key: "packet_data" });
@@ -117,14 +118,14 @@ export default {
     },
     blockchainLinks() {
       let links = [];
-      Object.keys(this.relationsAll).map(addr => {
+      Object.keys(this.relationsAll).map((addr) => {
         links.push({
           source: this.relationsAll[addr],
           target: addr,
-          type: "blockchain"
+          type: "blockchain",
         });
       });
-      links = links.filter(link => {
+      links = links.filter((link) => {
         // console.log("link.target", link.target);
         return find(this.addressNodes, { id: link.target });
       });
@@ -132,17 +133,17 @@ export default {
     },
     blockchainNodes() {
       let nodes = [];
-      this.blockchains.map(c => {
+      this.blockchains.map((c) => {
         nodes.push({
           id: c,
           val: c,
           name: c,
           type: "blockchain",
-          color: `#${stringToRGB(c)}`
+          color: `#${stringToRGB(c)}`,
         });
       });
       return nodes;
-    }
+    },
   },
   methods: {
     modifyControls(controls) {
@@ -151,7 +152,7 @@ export default {
       controls.maxDistance = 1000;
       controls.minDistance = 100;
       controls.update();
-    }
+    },
   },
   async mounted() {
     this.txs = (await axios.get(`${API}/txs/ibc`)).data;
@@ -165,38 +166,38 @@ export default {
       .nodeAutoColorBy("color")
       .warmupTicks(100) // allow the graph to preload itself
       .cooldownTime(15000) // don't self-adjust after loading
-      .nodeLabel(node => {
+      .nodeLabel((node) => {
         if (node.type === "blockchain") {
           return `[zone] ${node.id}`;
         }
         return node.id;
       })
-      .nodeResolution(node => {
+      .nodeResolution((node) => {
         if (node.type === "address") {
           return 0.25;
         }
         return 16;
       })
-      .nodeVal(node => {
+      .nodeVal((node) => {
         if (node.type === "address") {
           return 0.25;
         }
         return 16;
       })
-      .linkCurvature(link => {
+      .linkCurvature((link) => {
         if (link.type === "address") {
           return 0.25;
         }
         return 0;
       })
-      .linkDirectionalArrowLength(link => {
+      .linkDirectionalArrowLength((link) => {
         if (link.type === "address") {
           return 2;
         }
         return 0;
       })
       .linkOpacity(0.25)
-      .linkWidth(link => {
+      .linkWidth((link) => {
         if (link.type === "address") {
           return 0.5;
         }
@@ -208,11 +209,11 @@ export default {
     this.modifyControls(graph.controls());
 
     this.socket = io(`${API}`);
-    this.socket.on("tx", tx => {
+    this.socket.on("tx", (tx) => {
       console.log(tx);
       this.txs.push(tx);
       graph.numDimensions(3);
     });
-  }
+  },
 };
 </script>
