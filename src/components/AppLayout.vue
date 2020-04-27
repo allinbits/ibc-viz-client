@@ -2,7 +2,7 @@
   <div>
     <div :class="['container', `position__fixed__${!!fixed}`]">
       <app-header class="header"/>
-      <keep-alive>
+      <keep-alive include="network,rank">
         <router-view />
       </keep-alive>
       <div class="navbar">

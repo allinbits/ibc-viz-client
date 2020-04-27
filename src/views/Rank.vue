@@ -65,6 +65,7 @@ import IconCircle from "@/components/IconCircle.vue";
 const API = process.env.VUE_APP_API_URL;
 
 export default {
+  name: "rank",
   components: {
     IconCircle
   },

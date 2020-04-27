@@ -1,11 +1,13 @@
 <template>
   <div>
     <div class="wrapper">
-      <div class="container">
-        <div class="p">This is a live visualization of the current Game of Zones testnet, built by a team at All in Bits Inc.</div>
-        <div class="p">The large circles are sovereign blockchains, and the lines are inter-blockchain transactions.</div>
-        <a class="button" target="_blank" rel="noopener" href="https://goz.cosmosnetwork.dev/">Learn more about GoZ →</a>
-      </div>
+      <transition name="zoom">
+        <div class="container" v-if="show">
+          <div class="p">This is a live visualization of the current Game of Zones testnet, built by a team at All in Bits Inc.</div>
+          <div class="p">The large circles are sovereign blockchains, and the lines are inter-blockchain transactions.</div>
+          <a class="button" target="_blank" rel="noopener" href="https://goz.cosmosnetwork.dev/">Learn more about GoZ →</a>
+        </div>
+      </transition>
     </div>
   </div>
 </template>
@@ -42,4 +44,28 @@
 .button:active {
   opacity: 0.8;
 }
+.zoom-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+.zoom-enter-active {
+  transition: opacity 0.25s, transform 0.75s;
+}
+.zoom-enter-to {
+  opacity: 1;
+  transform: scale(1);
+}
 </style>
+
+<script>
+export default {
+  data: function() {
+    return {
+      show: null
+    };
+  },
+  mounted() {
+    this.show = true;
+  }
+};
+</script>
