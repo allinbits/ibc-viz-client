@@ -10,6 +10,8 @@
 </style>
 
 <script>
+import meshSkybox from "../functions/meshSkybox";
+
 import axios from "axios";
 import ForceGraph3D from "3d-force-graph";
 import { v4 as uuidv4 } from "uuid";
@@ -142,6 +144,15 @@ export default {
       return nodes;
     }
   },
+  methods: {
+    modifyControls(controls) {
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 3;
+      controls.maxDistance = 1000;
+      controls.minDistance = 100;
+      controls.update();
+    }
+  },
   async mounted() {
     this.socket = io(`${API}`);
     this.socket.on("tx", tx => {
@@ -154,9 +165,13 @@ export default {
 
     //console.log("blockchainLinks", this.blockchainLinks);
 
+    let distance = 500;
+
     let graph = ForceGraph3D()
-      .forceEngine("ngraph")
+      .enableNodeDrag(false)
       .nodeAutoColorBy("color")
+      .warmupTicks(100) // allow the graph to preload itself
+      .cooldownTime(15000) // don't self-adjust after loading
       .nodeLabel(node => {
         if (node.type === "blockchain") {
           return `[zone] ${node.id}`;
@@ -187,7 +202,7 @@ export default {
         }
         return 0;
       })
-      .linkOpacity(0.5)
+      .linkOpacity(0.25)
       .linkWidth(link => {
         if (link.type === "address") {
           return 0.5;
@@ -195,7 +210,17 @@ export default {
         return 0.25;
       });
 
+    graph.d3Force("link").distance(link => {
+      if (link.type === "address") {
+        return 10;
+      }
+      return 1;
+    });
+    graph.numDimensions(3);
+
     graph(document.getElementById("chart")).graphData(this.chartData);
+    graph.scene().add(meshSkybox);
+    this.modifyControls(graph.controls());
   }
 };
 </script>
