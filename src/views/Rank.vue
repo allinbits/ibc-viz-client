@@ -1,43 +1,65 @@
 <template>
   <div>
     <div class="container">
+      <div class="item item__heading">
+        <!-- <div></div> -->
+        <div class="item__name">Blockchain</div>
+        <div class="item__value">↑</div>
+        <div class="item__value">↓</div>
+        <div class="item__value">∑<sub>tx</sub></div>
+      </div>
       <div
-        :class="['item', `item__status__${item.status}`]"
+        :class="['item', `item__status__${status(item.status)}`]"
         v-for="item in sorted"
         :key="item.blockchain"
       >
-        <icon-circle class="item__icon" />
+        <!-- <icon-circle class="item__icon" /> -->
+        <!-- <div></div> -->
         <div class="item__label">
-          <div>{{ item.blockchain }}</div>
+          <div>
+            {{ item.blockchain }}
+            <sup v-if="status(item.status) === 'down'">offline</sup>
+          </div>
         </div>
-        <div>{{ item.txs_count }}</div>
+        <div class="item__value">{{ item.incoming }}</div>
+        <div class="item__value">{{ item.outgoing }}</div>
+        <div class="item__value">{{ item.total }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+sup,
+sub {
+  vertical-align: baseline;
+  position: relative;
+  top: -0.4em;
+}
+sub {
+  top: 0.4em;
+}
 .container {
-  padding: 1rem 1.5rem;
-  color: rgba(255, 255, 255, 0.5);
+  padding: 1rem 1rem;
+  color: rgba(255, 255, 255, 0.75);
   font-family: sans-serif;
   border-radius: 0.5rem;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
   backdrop-filter: blur(5px);
-  margin-left: auto;
-  margin-right: auto;
+  margin: 0.75rem auto;
   max-width: 600px;
 }
 .item {
   width: 100%;
-  margin: 0.5rem 0;
+  margin: 0.75rem 0;
   display: grid;
-  grid-template-columns: 0.5rem 1fr min-content;
+  grid-template-columns: 1fr 1.5rem 1.5rem 1.5rem;
   letter-spacing: 0.02em;
   gap: 1rem;
   align-items: center;
+  line-height: 1.5;
 }
 .item__icon {
   width: 0.5rem;
@@ -54,6 +76,23 @@
   width: 100%;
   overflow: hidden;
   white-space: nowrap;
+}
+.item__value {
+  text-align: right;
+}
+.item__heading {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: "Montserrat";
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+.item__heading .item__value {
+  font-family: sans-serif;
+}
+.item__status__down {
+  color: rgba(255, 255, 255, 0.25);
 }
 </style>
 
@@ -76,18 +115,27 @@ export default {
   },
   computed: {
     sorted() {
-      return orderBy(
-        this.blockchains,
-        ["status", "txs_count"],
-        ["desc", "desc"]
-      );
+      const blockchains = this.blockchains.map(b => {
+        return {
+          ...b,
+          total: b.incoming + b.outgoing
+        };
+      });
+      return orderBy(blockchains, ["status", "total"], ["desc", "desc"]);
+    }
+  },
+  methods: {
+    status(n) {
+      if (n === 2) return "up";
+      if (n === 1) return "down";
+      return "unknown";
     }
   },
   async created() {
-    this.blockchains = (await axios.get(`${API}/blockchains`)).data.map(b => {
+    this.blockchains = (await axios.get(`${API}/ranking`)).data.map(b => {
       return {
-        blockchain: b,
-        status: null
+        ...b,
+        status: 0
       };
     });
     this.blockchains.forEach(async b => {
@@ -95,9 +143,9 @@ export default {
       let status;
       try {
         await axios.get(`${API}/health?blockchain=${b.blockchain}`);
-        status = "up";
+        status = 2;
       } catch {
-        status = "down";
+        status = 1;
       }
       this.$set(item, "status", status);
     });
