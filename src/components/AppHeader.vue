@@ -8,7 +8,7 @@
         <div class="h2">by AiB Inc.</div>
       </div>
       <router-link to="/about" tag="div">
-        <icon-info class="icon-info"/>
+        <icon-info class="icon-info" />
       </router-link>
     </div>
   </div>
@@ -57,7 +57,7 @@ import IconInfo from "@/components/IconInfo.vue";
 
 export default {
   components: {
-    IconInfo
-  }
+    IconInfo,
+  },
 };
 </script>
