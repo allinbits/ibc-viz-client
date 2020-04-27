@@ -23,6 +23,7 @@
   align-items: center;
   padding: 1rem;
   box-sizing: border-box;
+  backdrop-filter: blur(5px);
 }
 .container {
   color: rgba(255, 255, 255, 0.9);
@@ -31,9 +32,6 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  border-radius: 0.25rem;
-  box-sizing: border-box;
-  backdrop-filter: blur(5px);
 }
 .h2 {
   font-size: 0.75rem;
