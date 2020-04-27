@@ -47,7 +47,6 @@
   outline: none;
 }
 .router-link-exact-active .icon {
-  stroke: rgb(255, 255, 255);
   opacity: 0.85;
 }
 </style>
