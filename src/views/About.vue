@@ -30,7 +30,7 @@
               href="https://github.com/allinbits/ibc-viz-server"
               target="_blank"
               rel="noopener"
-              >ibc-viz-client</a
+              >ibc-viz-server</a
             >
           </div>
           <div class="buttons">
