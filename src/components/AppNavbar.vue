@@ -12,7 +12,7 @@
         </router-link>
         <router-link to="/rank" class="button">
           <icon-list class="icon" />
-          <div>rank</div>
+          <div>Zones</div>
         </router-link>
       </div>
     </div>
