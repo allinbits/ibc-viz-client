@@ -2,6 +2,7 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import Network from "../views/Network3D.vue";
 import Rank from "../views/Rank.vue";
+import About from "../views/About.vue";
 
 Vue.use(VueRouter);
 
@@ -13,6 +14,10 @@ const routes = [
   {
     path: "/rank",
     component: Rank
+  },
+  {
+    path: "/about",
+    component: About
   }
 ];
 

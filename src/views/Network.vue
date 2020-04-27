@@ -1,11 +1,28 @@
 <template>
-  <div id="chart"></div>
+  <div>
+    <div class="loading" v-if="loading">
+      {{loadingText}}...
+    </div>
+    <div id="chart"></div>
+  </div>
 </template>
 
 <style scoped>
 #chart {
   width: 100vw;
-  height: calc(100vh - 3rem);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+.loading {
+  position: fixed;
+  width: 100vw;
+  text-align: center;
+  letter-spacing: 0.01em;
+  top: 50vh;
+  color: rgba(255, 255, 255, 0.75);
+  font-family: sans-serif;
 }
 </style>
 
@@ -32,13 +49,15 @@ const stringToRGB = string => {
 };
 
 export default {
+  name: "network",
   data: function() {
     return {
       txs: [],
       socket: null,
       chart: null,
       relations: {},
-      blockchains: []
+      blockchains: [],
+      loading: true
     };
   },
   watch: {
@@ -49,10 +68,22 @@ export default {
     }
   },
   computed: {
+    loadingText() {
+      const items = [
+        "Counting stars",
+        "Setting phasers to stun",
+        "Reticulating splines",
+        "Exploring the universe"
+      ];
+      return items[Math.floor(Math.random() * items.length)];
+    },
     chartOptions() {
       return {
         legend: [
           {
+            bottom: 65,
+            left: 10,
+            right: 10,
             type: "scroll",
             pageIconColor: "#fff",
             pageTextStyle: { color: "fff" },
@@ -198,6 +229,7 @@ export default {
     }
   },
   async mounted() {
+    console.log("mounted");
     this.socket = io(`${API}`);
     this.socket.on("tx", tx => {
       console.log(tx);
@@ -208,6 +240,7 @@ export default {
     this.blockchains = (await axios.get(`${API}/blockchains`)).data;
     this.chart = echarts.init(document.getElementById("chart"));
     this.chart.setOption(this.chartOptions);
+    this.loading = false;
     window.onresize = this.chart.resize;
   }
 };

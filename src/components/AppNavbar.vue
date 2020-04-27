@@ -15,7 +15,7 @@
 
 <style scoped>
 .wrapper {
-  background: rgba(21, 21, 21, 0.8);
+  background: rgba(21, 21, 21, 0.75);
   backdrop-filter: blur(5px);
 }
 .container {
@@ -54,7 +54,7 @@ import IconList from "@/components/IconList.vue";
 export default {
   components: {
     IconNetwork,
-    IconList,
-  },
+    IconList
+  }
 };
 </script>
