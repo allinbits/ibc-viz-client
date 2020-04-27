@@ -35,7 +35,7 @@
 }
 .h2 {
   font-size: 0.75rem;
-  opacity: 0.75;
+  opacity: 0.5;
 }
 .icon-info {
   width: 1.25rem;
