@@ -1,12 +1,12 @@
 <template>
   <div>
     <div :class="['container', `position__fixed__${!!fixed}`]">
-      <app-header class="header"/>
+      <app-header class="header" :dark="$route.fullPath === '/3d'" />
       <keep-alive include="network,rank">
         <router-view />
       </keep-alive>
       <div class="navbar">
-        <app-navbar />
+        <app-navbar :dark="$route.fullPath === '/3d'" />
       </div>
     </div>
   </div>
@@ -42,12 +42,12 @@ import AppHeader from "@/components/AppHeader.vue";
 export default {
   components: {
     AppNavbar,
-    AppHeader
+    AppHeader,
   },
   computed: {
     fixed() {
       return this.$route.fullPath === "/";
-    }
-  }
+    },
+  },
 };
 </script>

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="wrapper">
+    <div :class="['wrapper', `dark__${dark}`]">
       <div class="container">
         <div class="h1">
           Game of Zones Visualizer
@@ -24,6 +24,9 @@
   padding: 1rem;
   box-sizing: border-box;
   backdrop-filter: blur(5px);
+}
+.dark__true.wrapper {
+  background: rgba(0, 0, 0, 0.5);
 }
 .container {
   color: rgba(255, 255, 255, 0.9);
@@ -58,6 +61,12 @@ import IconInfo from "@/components/IconInfo.vue";
 export default {
   components: {
     IconInfo,
+  },
+  props: {
+    dark: {
+      type: Boolean,
+      default: false,
+    },
   },
 };
 </script>

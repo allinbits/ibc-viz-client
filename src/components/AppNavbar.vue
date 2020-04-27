@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="wrapper">
+    <div :class="['wrapper', `dark__${dark}`]">
       <div class="container">
         <router-link to="/" class="button">
           <icon-network class="icon" />
@@ -23,6 +23,9 @@
 .wrapper {
   background: rgba(21, 21, 21, 0.75);
   backdrop-filter: blur(5px);
+}
+.dark__true.wrapper {
+  background: rgba(0, 0, 0, 0.5);
 }
 .container {
   justify-content: space-around;
@@ -80,6 +83,12 @@ export default {
     IconNetwork,
     IconList,
     IconWorld,
+  },
+  props: {
+    dark: {
+      type: Boolean,
+      default: false,
+    },
   },
 };
 </script>
