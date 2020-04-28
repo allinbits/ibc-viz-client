@@ -2,7 +2,6 @@
   <div>
     <div class="container">
       <div class="item item__heading">
-        <!-- <div></div> -->
         <div class="item__name">Blockchain</div>
         <div class="item__value">↑</div>
         <div class="item__value">↓</div>
@@ -13,17 +12,15 @@
         v-for="item in sorted"
         :key="item.blockchain"
       >
-        <!-- <icon-circle class="item__icon" /> -->
-        <!-- <div></div> -->
         <div class="item__label">
           <div>
             {{ item.blockchain }}
             <sup v-if="status(item.status) === 'down'">offline</sup>
           </div>
         </div>
-        <div class="item__value">{{ item.incoming }}</div>
-        <div class="item__value">{{ item.outgoing }}</div>
-        <div class="item__value">{{ item.total }}</div>
+        <div class="item__value" :title="item.incoming">{{ kFormatter(item.incoming) }}</div>
+        <div class="item__value" :title="item.outgoing">{{ kFormatter(item.outgoing) }}</div>
+        <div class="item__value" :title="item.total">{{ kFormatter(item.total) }}</div>
       </div>
     </div>
   </div>
@@ -55,7 +52,7 @@ sub {
   width: 100%;
   margin: 0.75rem 0;
   display: grid;
-  grid-template-columns: 1fr 1.5rem 1.5rem 1.5rem;
+  grid-template-columns: 1fr 2.25rem 2.25rem 2.25rem;
   letter-spacing: 0.02em;
   gap: 1rem;
   align-items: center;
@@ -103,6 +100,14 @@ import IconCircle from "@/components/IconCircle.vue";
 
 const API = process.env.VUE_APP_API_URL;
 
+function kFormatter(num) {
+  if (Math.abs(num) > 999) {
+    return Math.sign(num) * (Math.abs(num) / 1000).toFixed(1) + "K";
+  } else {
+    return Math.sign(num) * Math.abs(num);
+  }
+}
+
 export default {
   name: "rank",
   components: {
@@ -129,7 +134,8 @@ export default {
       if (n === 2) return "up";
       if (n === 1) return "down";
       return "unknown";
-    }
+    },
+    kFormatter
   },
   async created() {
     this.blockchains = (await axios.get(`${API}/ranking`)).data.map(b => {
