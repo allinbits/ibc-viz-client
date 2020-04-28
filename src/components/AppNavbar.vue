@@ -6,10 +6,10 @@
           <icon-network class="icon" />
           <div>Graph</div>
         </router-link>
-        <router-link to="/3d" class="button">
+        <!-- <router-link to="/3d" class="button">
           <icon-world class="icon" />
           <div>Universe</div>
-        </router-link>
+        </router-link> -->
         <router-link to="/rank" class="button">
           <icon-list class="icon" />
           <div>Zones</div>
@@ -82,13 +82,13 @@ export default {
   components: {
     IconNetwork,
     IconList,
-    IconWorld,
+    IconWorld
   },
   props: {
     dark: {
       type: Boolean,
-      default: false,
-    },
-  },
+      default: false
+    }
+  }
 };
 </script>

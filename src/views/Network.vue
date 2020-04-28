@@ -33,8 +33,8 @@ import io from "socket.io-client";
 
 const API = process.env.VUE_APP_API_URL;
 
-const stringToRGB = (string) => {
-  const hashCode = (str) => {
+const stringToRGB = string => {
+  const hashCode = str => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -56,14 +56,15 @@ export default {
       relations: {},
       blockchains: [],
       loading: true,
+      connections: []
     };
   },
   watch: {
-    txsSendPacket() {
+    connections() {
       if (this.chart) {
         this.chart.setOption(this.chartOptions);
       }
-    },
+    }
   },
   computed: {
     loadingText() {
@@ -71,7 +72,7 @@ export default {
         "Counting stars",
         "Setting phasers to stun",
         "Reticulating splines",
-        "Exploring the universe",
+        "Exploring the universe"
       ];
       return items[Math.floor(Math.random() * items.length)];
     },
@@ -88,11 +89,11 @@ export default {
             selectedMode: "multiple",
             textStyle: {
               color: "#fff",
-              padding: 5,
+              padding: 5
             },
             inactiveColor: "#fff",
-            data: [...this.blockchainCategories],
-          },
+            data: [...this.blockchainCategories]
+          }
         ],
         series: [
           {
@@ -107,112 +108,83 @@ export default {
             label: {
               formatter: "{b}",
               color: "rgba(255,255,255,.75)",
-              position: "top",
+              position: "top"
             },
             force: {
               edgeLength: 10,
               repulsion: 40,
-              gravity: 0.1,
-            },
-          },
-        ],
+              gravity: 0.1
+            }
+          }
+        ]
       };
-    },
-    txsSendPacket() {
-      return this.txs.filter((tx) => {
-        return find(tx.events, { type: "send_packet" });
-      });
     },
     addressNodes() {
       let nodes = [];
-      this.txsSendPacket.forEach((tx) => {
-        const send_packet = find(tx.events, { type: "send_packet" }).attributes;
-        const t = JSON.parse(find(send_packet, { key: "packet_data" }).val)
-          .value;
-        nodes.push(t.receiver);
-        nodes.push(t.sender);
+      this.connections.forEach(c => {
+        nodes.push(c.sender);
+        nodes.push(c.receiver);
       });
-      const unique = [...new Set(nodes)];
-      return unique.map((addr) => {
+      nodes = [...new Set(nodes)];
+      nodes = nodes.map(addr => {
         return {
           id: addr,
           symbolSize: 3,
           name: addr,
-          category: this.relationsAll[addr] || "unknown",
+          category: this.relations[addr] || "unknown"
         };
       });
+      return nodes;
     },
     addressLinks() {
-      return this.txsSendPacket.map((t) => {
-        const send_packet = find(t.events, { type: "send_packet" }).attributes;
-        const tx = JSON.parse(find(send_packet, { key: "packet_data" }).val)
-          .value;
+      return this.connections.map(c => {
         return {
-          source: tx.sender,
-          target: tx.receiver,
+          source: c.sender,
+          target: c.receiver,
           symbol: [null, "arrow"],
           symbolSize: 6,
           lineStyle: {
             color: "source",
             curveness: 0.2,
-            opacity: 1,
-          },
+            opacity: 1
+          }
         };
       });
     },
-    relationsAll() {
-      let data = {};
-      this.txs.forEach((tx) => {
-        Object.keys(tx.events).forEach((i) => {
-          const ev = tx.events[i];
-          if (ev.type === "recv_packet") {
-            const packet_data = find(ev.attributes, { key: "packet_data" });
-            const addr = JSON.parse(packet_data.val).value.receiver;
-            data[addr] = tx.domain;
-          }
-          if (ev.type === "send_packet") {
-            const packet_data = find(ev.attributes, { key: "packet_data" });
-            const addr = JSON.parse(packet_data.val).value.sender;
-            data[addr] = tx.domain;
-          }
-        });
-      });
-      return { ...data, ...this.relations };
-    },
     blockchainCategories() {
-      let categories = this.blockchains.map((name) => {
+      let categories = this.blockchains.map(name => {
         return {
           name,
           base: name,
           itemStyle: {
-            color: `#${stringToRGB(name)}`,
-          },
+            color: `#${stringToRGB(name)}`
+          }
         };
       });
       const unknown = {
         name: "unknown",
         base: "unknown",
         itemStyle: {
-          color: "#333",
-        },
+          color: "#333"
+        }
       };
       categories.push(unknown);
       return categories;
     },
     blockchainLinks() {
-      return Object.keys(this.relationsAll).map((addr) => {
+      return Object.keys(this.relations).map(addr => {
         return {
-          source: this.relationsAll[addr],
+          source: this.relations[addr],
           target: addr,
           lineStyle: {
             color: "source",
-            opacity: 0.2,
-          },
+            opacity: 0.2
+          }
         };
       });
     },
     blockchainNodes() {
-      return this.blockchains.map((c) => {
+      return this.blockchains.map(c => {
         return {
           id: c,
           symbolSize: 15,
@@ -220,26 +192,38 @@ export default {
           name: c,
           label: {
             show: true,
-            color: "rgba(255,255,255,.5)",
-          },
+            color: "rgba(255,255,255,.5)"
+          }
         };
       });
-    },
+    }
   },
   async mounted() {
-    console.log("mounted");
     this.socket = io(`${API}`);
-    this.socket.on("tx", (tx) => {
-      console.log(tx);
-      this.txs.push(tx);
+    this.socket.on("tx", tx => {
+      if (tx.type === "send_packet") {
+        let c = find(this.connections, {
+          sender: tx.sender,
+          receiver: tx.receiver
+        });
+        if (c) {
+          c.count++;
+        } else {
+          this.connections.push({
+            sender: tx.sender,
+            receiver: tx.receiver,
+            count: 1
+          });
+        }
+      }
     });
-    this.txs = (await axios.get(`${API}/txs/ibc`)).data;
+    this.connections = (await axios.get(`${API}/transfers/connections`)).data;
     this.relations = (await axios.get(`${API}/relations`)).data;
     this.blockchains = (await axios.get(`${API}/blockchains`)).data;
     this.chart = echarts.init(document.getElementById("chart"));
     this.chart.setOption(this.chartOptions);
     this.loading = false;
     window.onresize = this.chart.resize;
-  },
+  }
 };
 </script>
