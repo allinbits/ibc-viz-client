@@ -10,14 +10,14 @@
 </style>
 
 <script>
-import meshSkybox from "../functions/meshSkybox";
-
 import axios from "axios";
 import ForceGraph3D from "3d-force-graph";
 import { v4 as uuidv4 } from "uuid";
 import { find, groupBy } from "lodash";
 import io from "socket.io-client";
+import { mapGetters } from "vuex";
 
+import meshSkybox from "../functions/meshSkybox";
 const API = process.env.VUE_APP_API_URL;
 
 const stringToRGB = string => {
@@ -40,12 +40,12 @@ export default {
       txs: [],
       socket: null,
       chart: null,
-      relations: {},
-      blockchains: [],
-      connections: []
+      graph: null,
+      chartElement: null
     };
   },
   computed: {
+    ...mapGetters(["blockchains", "connections", "relations"]),
     chartData() {
       return {
         nodes: [...this.addressNodes, ...this.blockchainNodes],
@@ -121,13 +121,7 @@ export default {
     }
   },
   async mounted() {
-    this.relations = (await axios.get(`${API}/relations`)).data;
-    this.blockchains = (await axios.get(`${API}/blockchains`)).data;
-    this.connections = (await axios.get(`${API}/transfers/connections`)).data;
-
-    let distance = 500;
-
-    let graph = ForceGraph3D()
+    this.graph = ForceGraph3D()
       .enableNodeDrag(false)
       .nodeAutoColorBy("color")
       .warmupTicks(100) // allow the graph to preload itself
@@ -169,29 +163,15 @@ export default {
         }
         return 0.25;
       });
-
-    graph(document.getElementById("chart")).graphData(this.chartData);
-    graph.scene().add(meshSkybox);
-    this.modifyControls(graph.controls());
-    this.socket = io(`${API}`);
-    this.socket.on("tx", tx => {
-      if (tx.type === "send_packet") {
-        let c = find(this.connections, {
-          sender: tx.sender,
-          receiver: tx.receiver
-        });
-        if (c) {
-          c.count++;
-        } else {
-          this.connections.push({
-            sender: tx.sender,
-            receiver: tx.receiver,
-            count: 1
-          });
-        }
-      }
-      graph.numDimensions(3);
-    });
+    await Promise.all([
+      this.$store.dispatch("relationsFetch"),
+      this.$store.dispatch("connectionsFetch"),
+      this.$store.dispatch("blockchainsFetch")
+    ]);
+    this.chartElement = document.getElementById("chart");
+    this.graph(this.chartElement).graphData(this.chartData);
+    this.graph.scene().add(meshSkybox);
+    this.modifyControls(this.graph.controls());
   }
 };
 </script>

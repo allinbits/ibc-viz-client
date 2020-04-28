@@ -51,29 +51,18 @@ export default {
   name: "network",
   data: function() {
     return {
-      txs: [],
-      socket: null,
       chart: null
-      // relations: {},
-      // blockchains: [],
-      // connections: []
     };
   },
   watch: {
     connections() {
-      if (this.chart) {
-        this.chart.setOption(this.chartOptions);
-      }
+      this.chartUpdate();
     },
     blockchains() {
-      if (this.chart) {
-        this.chart.setOption(this.chartOptions);
-      }
+      this.chartUpdate();
     },
     relations() {
-      if (this.chart) {
-        this.chart.setOption(this.chartOptions);
-      }
+      this.chartUpdate();
     }
   },
   computed: {
@@ -215,10 +204,17 @@ export default {
       });
     }
   },
+  methods: {
+    chartUpdate() {
+      if (this.chart) {
+        this.chart.setOption(this.chartOptions);
+      }
+    }
+  },
   async mounted() {
     this.chart = echarts.init(document.getElementById("chart"));
-    this.chart.setOption(this.chartOptions);
     window.onresize = this.chart.resize;
+    this.chartUpdate();
   }
 };
 </script>

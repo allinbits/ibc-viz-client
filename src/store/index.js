@@ -28,9 +28,6 @@ export const store = new Vuex.Store({
     },
   },
   mutations: {
-    connectionsCreate(state, { connections }) {
-      state.connections = [...state.connections, ...connections];
-    },
     connectionsUpdate(state, { index, connections }) {
       connections.forEach((connection) => {
         const index = findIndex(state.connections, {
@@ -45,7 +42,7 @@ export const store = new Vuex.Store({
       });
     },
     blockchainsCreate(state, { blockchains }) {
-      state.blockchains = [...state.blockchains, ...blockchains];
+      state.blockchains = [...new Set([...state.blockchains, ...blockchains])];
     },
     relationsCreate(state, { relations }) {
       state.relations = { ...state.relations, ...relations };
@@ -68,7 +65,7 @@ export const store = new Vuex.Store({
         });
       }
     },
-    socketInit({ dispatch }) {
+    socketSubscribe({ dispatch }) {
       let socket = io(`${API}`);
       socket.on("tx", (tx) => {
         if (tx.type === "send_packet") {
@@ -77,19 +74,28 @@ export const store = new Vuex.Store({
       });
     },
     async relationsFetch({ commit }) {
-      const url = `${API}/relations`;
-      const relations = (await axios.get(url)).data;
-      commit("relationsCreate", { relations });
+      return new Promise(async (resolve) => {
+        const url = `${API}/relations`;
+        const relations = (await axios.get(url)).data;
+        commit("relationsCreate", { relations });
+        resolve(true);
+      });
     },
     async connectionsFetch({ commit }) {
-      const url = `${API}/transfers/connections`;
-      const connections = (await axios.get(url)).data;
-      commit("connectionsUpdate", { connections });
+      return new Promise(async (resolve) => {
+        const url = `${API}/transfers/connections`;
+        const connections = (await axios.get(url)).data;
+        commit("connectionsUpdate", { connections });
+        resolve(true);
+      });
     },
     async blockchainsFetch({ commit }) {
-      const url = `${API}/blockchains`;
-      const blockchains = (await axios.get(url)).data;
-      commit("blockchainsCreate", { blockchains });
+      return new Promise(async (resolve) => {
+        const url = `${API}/blockchains`;
+        const blockchains = (await axios.get(url)).data;
+        commit("blockchainsCreate", { blockchains });
+        resolve(true);
+      });
     },
   },
 });
