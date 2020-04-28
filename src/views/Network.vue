@@ -28,7 +28,7 @@
 import axios from "axios";
 import echarts from "echarts";
 import { v4 as uuidv4 } from "uuid";
-import { find, groupBy } from "lodash";
+import { find, groupBy, orderBy } from "lodash";
 import io from "socket.io-client";
 import { mapGetters } from "vuex";
 
@@ -67,6 +67,9 @@ export default {
   },
   computed: {
     ...mapGetters(["blockchains", "connections", "relations"]),
+    connectionsCountMax() {
+      return Math.max(...this.connections.map(c => c.count));
+    },
     loading() {
       const conn = this.connections && this.connections.length > 0;
       const block = this.blockchains && this.blockchains.length > 0;
@@ -143,7 +146,9 @@ export default {
       return nodes;
     },
     addressLinks() {
-      return this.connections.map(c => {
+      const countValues = [...new Set(this.connections.map(c => c.count))];
+      const connections = orderBy(this.connections, ["count"], ["desc"]);
+      return connections.map((c, index) => {
         return {
           source: c.sender,
           target: c.receiver,
@@ -152,7 +157,7 @@ export default {
           lineStyle: {
             color: "source",
             curveness: 0.2,
-            opacity: 1
+            opacity: 0.1 + countValues.indexOf(c.count) / countValues.length
           }
         };
       });

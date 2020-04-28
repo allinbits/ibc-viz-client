@@ -41,6 +41,9 @@ export const store = new Vuex.Store({
         }
       });
     },
+    connectionsClear(state) {
+      state.connections = [];
+    },
     blockchainsCreate(state, { blockchains }) {
       state.blockchains = [...new Set([...state.blockchains, ...blockchains])];
     },
@@ -88,6 +91,9 @@ export const store = new Vuex.Store({
         commit("connectionsUpdate", { connections });
         resolve(true);
       });
+    },
+    connectionsClear({ commit }) {
+      commit("connectionsClear");
     },
     async blockchainsFetch({ commit }) {
       return new Promise(async (resolve) => {

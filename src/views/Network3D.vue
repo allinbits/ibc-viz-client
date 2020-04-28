@@ -41,7 +41,7 @@ export default {
       socket: null,
       chart: null,
       graph: null,
-      chartElement: null
+      graphElement: null
     };
   },
   computed: {
@@ -118,59 +118,44 @@ export default {
       controls.maxDistance = 1000;
       controls.minDistance = 100;
       controls.update();
+    },
+    createForceGraph3D() {
+      return ForceGraph3D()
+        .enableNodeDrag(false)
+        .nodeAutoColorBy("color")
+        .warmupTicks(100) // allow the graph to preload itself
+        .cooldownTime(15000) // don't self-adjust after loading
+        .nodeLabel(({ type, id }) => {
+          return type === "blockchain" ? `[zone] ${id}` : id;
+        })
+        .nodeResolution(({ type }) => {
+          return type === "address" ? 0.25 : 16;
+        })
+        .nodeVal(({ type }) => {
+          return type === "address" ? 0.25 : 16;
+        })
+        .linkCurvature(({ type }) => {
+          return type === "address" ? 0.25 : 0;
+        })
+        .linkDirectionalArrowLength(({ type }) => {
+          return type === "address" ? 2 : 0;
+        })
+        .linkOpacity(0.25)
+        .linkWidth(({ type }) => {
+          return type === "address" ? 0.5 : 0.25;
+        });
     }
   },
   async mounted() {
-    this.graph = ForceGraph3D()
-      .enableNodeDrag(false)
-      .nodeAutoColorBy("color")
-      .warmupTicks(100) // allow the graph to preload itself
-      .cooldownTime(15000) // don't self-adjust after loading
-      .nodeLabel(node => {
-        if (node.type === "blockchain") {
-          return `[zone] ${node.id}`;
-        }
-        return node.id;
-      })
-      .nodeResolution(node => {
-        if (node.type === "address") {
-          return 0.25;
-        }
-        return 16;
-      })
-      .nodeVal(node => {
-        if (node.type === "address") {
-          return 0.25;
-        }
-        return 16;
-      })
-      .linkCurvature(link => {
-        if (link.type === "address") {
-          return 0.25;
-        }
-        return 0;
-      })
-      .linkDirectionalArrowLength(link => {
-        if (link.type === "address") {
-          return 2;
-        }
-        return 0;
-      })
-      .linkOpacity(0.25)
-      .linkWidth(link => {
-        if (link.type === "address") {
-          return 0.5;
-        }
-        return 0.25;
-      });
+    this.graph = this.createForceGraph3D();
+    this.graphElement = document.getElementById("chart");
+    this.graph.scene().add(meshSkybox);
     await Promise.all([
       this.$store.dispatch("relationsFetch"),
       this.$store.dispatch("connectionsFetch"),
       this.$store.dispatch("blockchainsFetch")
     ]);
-    this.chartElement = document.getElementById("chart");
-    this.graph(this.chartElement).graphData(this.chartData);
-    this.graph.scene().add(meshSkybox);
+    this.graph(this.graphElement).graphData(this.chartData);
     this.modifyControls(this.graph.controls());
   }
 };
