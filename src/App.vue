@@ -23,7 +23,13 @@ import AppLayout from "@/components/AppLayout.vue";
 
 export default {
   components: {
-    AppLayout,
+    AppLayout
   },
+  mounted() {
+    this.$store.dispatch("socketInit");
+    this.$store.dispatch("relationsFetch");
+    this.$store.dispatch("connectionsFetch");
+    this.$store.dispatch("blockchainsFetch");
+  }
 };
 </script>

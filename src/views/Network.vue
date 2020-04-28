@@ -30,6 +30,7 @@ import echarts from "echarts";
 import { v4 as uuidv4 } from "uuid";
 import { find, groupBy } from "lodash";
 import io from "socket.io-client";
+import { mapGetters } from "vuex";
 
 const API = process.env.VUE_APP_API_URL;
 
@@ -52,11 +53,10 @@ export default {
     return {
       txs: [],
       socket: null,
-      chart: null,
-      relations: {},
-      blockchains: [],
-      loading: true,
-      connections: []
+      chart: null
+      // relations: {},
+      // blockchains: [],
+      // connections: []
     };
   },
   watch: {
@@ -64,9 +64,26 @@ export default {
       if (this.chart) {
         this.chart.setOption(this.chartOptions);
       }
+    },
+    blockchains() {
+      if (this.chart) {
+        this.chart.setOption(this.chartOptions);
+      }
+    },
+    relations() {
+      if (this.chart) {
+        this.chart.setOption(this.chartOptions);
+      }
     }
   },
   computed: {
+    ...mapGetters(["blockchains", "connections", "relations"]),
+    loading() {
+      const conn = this.connections && this.connections.length > 0;
+      const block = this.blockchains && this.blockchains.length > 0;
+      const rel = this.relations && Object.keys(this.relations).length > 0;
+      return !(conn && block && rel);
+    },
     loadingText() {
       const items = [
         "Counting stars",
@@ -111,8 +128,8 @@ export default {
               position: "top"
             },
             force: {
-              edgeLength: 10,
-              repulsion: 40,
+              edgeLength: 5,
+              repulsion: 20,
               gravity: 0.1
             }
           }
@@ -199,30 +216,8 @@ export default {
     }
   },
   async mounted() {
-    this.socket = io(`${API}`);
-    this.socket.on("tx", tx => {
-      if (tx.type === "send_packet") {
-        let c = find(this.connections, {
-          sender: tx.sender,
-          receiver: tx.receiver
-        });
-        if (c) {
-          c.count++;
-        } else {
-          this.connections.push({
-            sender: tx.sender,
-            receiver: tx.receiver,
-            count: 1
-          });
-        }
-      }
-    });
-    this.connections = (await axios.get(`${API}/transfers/connections`)).data;
-    this.relations = (await axios.get(`${API}/relations`)).data;
-    this.blockchains = (await axios.get(`${API}/blockchains`)).data;
     this.chart = echarts.init(document.getElementById("chart"));
     this.chart.setOption(this.chartOptions);
-    this.loading = false;
     window.onresize = this.chart.resize;
   }
 };
