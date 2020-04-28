@@ -65,7 +65,7 @@ a:active {
   opacity: 0.75;
 }
 .wrapper {
-  margin: 13vh 1rem 0;
+  margin: 13vh 1rem 4rem;
 }
 .container {
   padding: 2rem;
@@ -112,11 +112,11 @@ a:active {
 export default {
   data: function() {
     return {
-      show: null,
+      show: null
     };
   },
   mounted() {
     this.show = true;
-  },
+  }
 };
 </script>

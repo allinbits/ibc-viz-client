@@ -52,7 +52,7 @@ sub {
   width: 100%;
   margin: 0.75rem 0;
   display: grid;
-  grid-template-columns: 1fr 2.25rem 2.25rem 2.25rem;
+  grid-template-columns: 1fr 2rem 2rem 2rem;
   letter-spacing: 0.02em;
   gap: 1rem;
   align-items: center;
@@ -70,7 +70,6 @@ sub {
   fill: rgb(0, 100, 0);
 }
 .item__label {
-  width: 100%;
   overflow: hidden;
   white-space: nowrap;
 }
