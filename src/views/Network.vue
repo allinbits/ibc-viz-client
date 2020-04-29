@@ -1,13 +1,17 @@
 <template>
   <div>
     <div class="loading" v-if="loading">{{ loadingText }}...</div>
-    <div id="chart"></div>
-    <div class="toolbar">
+    <div class="dropdown">
       <div class="toolbar__container" @click="historicalToggle">
         <component :is="`icon-checkbox-${!!historical}`" class="toolbar__icon"/>
         <div>Historical data</div>
       </div>
+      <select v-model="blockchainSelected">
+        <option :value="false">All blockchains</option>
+        <option v-for="b in blockchains" :value="b" :key="b">{{b}}</option>
+      </select>
     </div>
+    <div id="chart"></div>
   </div>
 </template>
 
@@ -28,17 +32,9 @@
   color: rgba(255, 255, 255, 0.75);
   font-family: sans-serif;
 }
-.toolbar {
-  width: 100%;
-  position: absolute;
-  bottom: 7rem;
-  padding: 0 1rem;
+.toolbar__container {
   color: rgba(255, 255, 255, 0.85);
   font-family: sans-serif;
-  box-sizing: border-box;
-  z-index: 2000;
-}
-.toolbar__container {
   display: inline-flex;
   align-items: center;
   flex-direction: row;
@@ -49,6 +45,27 @@
   width: 1rem;
   height: 1rem;
   margin-right: 0.5rem;
+}
+.dropdown {
+  position: absolute;
+  top: 4rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 2000;
+}
+.dropdown select {
+  background: none;
+  margin-left: 1rem;
+  border: 1.25px solid rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.85);
+  outline: none;
+  font-family: sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  max-width: 10rem;
 }
 </style>
 
@@ -82,7 +99,8 @@ export default {
   data: function() {
     return {
       chart: null,
-      historical: true
+      historical: true,
+      blockchainSelected: false
     };
   },
   components: {
@@ -121,23 +139,6 @@ export default {
     },
     chartOptions() {
       return {
-        legend: [
-          {
-            bottom: 80,
-            left: 10,
-            right: 10,
-            type: "scroll",
-            pageIconColor: "#fff",
-            pageTextStyle: { color: "fff" },
-            selectedMode: "multiple",
-            textStyle: {
-              color: "#fff",
-              padding: 5
-            },
-            inactiveColor: "#fff",
-            data: [...this.blockchainCategories]
-          }
-        ],
         series: [
           {
             zoom: 2,
@@ -174,7 +175,7 @@ export default {
           id: addr,
           symbolSize: 3,
           name: addr,
-          category: this.relations[addr] || "unknown"
+          category: this.categoryCurrent(this.relations[addr] || "unknown")
         };
       });
       return nodes;
@@ -233,7 +234,7 @@ export default {
         return {
           id: c,
           symbolSize: 15,
-          category: c,
+          category: this.categoryCurrent(c),
           name: c,
           label: {
             show: true,
@@ -244,6 +245,13 @@ export default {
     }
   },
   methods: {
+    categoryCurrent(category) {
+      if (!this.blockchainSelected || this.blockchainSelected === category) {
+        return category;
+      } else {
+        return "unknown";
+      }
+    },
     historicalToggle() {
       if (this.historical === true) {
         this.$store.dispatch("connectionsClear");
