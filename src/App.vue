@@ -27,8 +27,8 @@ export default {
   },
   mounted() {
     this.$store.dispatch("socketSubscribe");
-    this.$store.dispatch("relationsFetch");
-    this.$store.dispatch("connectionsFetch");
+    // this.$store.dispatch("relationsFetch");
+    // this.$store.dispatch("connectionsFetch");
     this.$store.dispatch("blockchainsFetch");
   }
 };

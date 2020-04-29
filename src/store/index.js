@@ -21,7 +21,16 @@ export const store = new Vuex.Store({
       return state.blockchains;
     },
     relations(state) {
-      return state.relations;
+      const relations = {};
+      state.connections.forEach((c) => {
+        if (c.type === "send_packet") {
+          relations[c.sender] = c.blockchain;
+        }
+        if (c.type === "recv_packet") {
+          relations[c.receiver] = c.blockchain;
+        }
+      });
+      return { ...relations, ...state.relations };
     },
     connections(state) {
       return state.connections;
@@ -56,6 +65,8 @@ export const store = new Vuex.Store({
       const connection = {
         sender: tx.sender,
         receiver: tx.receiver,
+        blockchain: tx.blockchain,
+        type: tx.type,
       };
       const existing = find(state.connections, connection);
       if (existing) {
