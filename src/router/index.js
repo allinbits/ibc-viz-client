@@ -18,7 +18,7 @@ const routes = [
   },
   {
     path: "/zones",
-    component: zones,
+    component: Zones,
   },
   {
     path: "/about",
