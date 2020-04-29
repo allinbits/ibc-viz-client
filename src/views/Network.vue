@@ -66,6 +66,7 @@
   font-size: 1rem;
   letter-spacing: 0.01em;
   max-width: 10rem;
+  border-radius: 2px;
 }
 </style>
 
