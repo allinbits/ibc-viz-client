@@ -2,6 +2,12 @@
   <div>
     <div class="loading" v-if="loading">{{ loadingText }}...</div>
     <div id="chart"></div>
+    <div class="toolbar">
+      <div class="toolbar__container" @click="historicalToggle">
+        <component :is="`icon-checkbox-${!!historical}`" class="toolbar__icon"/>
+        <div>Historical data</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -22,6 +28,28 @@
   color: rgba(255, 255, 255, 0.75);
   font-family: sans-serif;
 }
+.toolbar {
+  width: 100%;
+  position: absolute;
+  bottom: 7rem;
+  padding: 0 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: sans-serif;
+  box-sizing: border-box;
+  z-index: 2000;
+}
+.toolbar__container {
+  display: inline-flex;
+  align-items: center;
+  flex-direction: row;
+  padding: 0.25rem 0;
+}
+.toolbar__icon {
+  fill: rgba(255, 255, 255, 0.85);
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+}
 </style>
 
 <script>
@@ -31,6 +59,8 @@ import { v4 as uuidv4 } from "uuid";
 import { find, groupBy, orderBy } from "lodash";
 import io from "socket.io-client";
 import { mapGetters } from "vuex";
+import IconCheckboxTrue from "@/components/IconCheckboxTrue.vue";
+import IconCheckboxFalse from "@/components/IconCheckboxFalse.vue";
 
 const API = process.env.VUE_APP_API_URL;
 
@@ -51,8 +81,13 @@ export default {
   name: "network",
   data: function() {
     return {
-      chart: null
+      chart: null,
+      historical: true
     };
+  },
+  components: {
+    IconCheckboxTrue,
+    IconCheckboxFalse
   },
   watch: {
     connections() {
@@ -71,10 +106,9 @@ export default {
       return Math.max(...this.connections.map(c => c.count));
     },
     loading() {
-      const conn = this.connections && this.connections.length > 0;
-      const block = this.blockchains && this.blockchains.length > 0;
-      const rel = this.relations && Object.keys(this.relations).length > 0;
-      return !(conn && block && rel);
+      const connections = this.connections && this.connections.length > 0;
+      const blockchains = this.blockchains && this.blockchains.length > 0;
+      return !(connections || blockchains);
     },
     loadingText() {
       const items = [
@@ -210,6 +244,15 @@ export default {
     }
   },
   methods: {
+    historicalToggle() {
+      if (this.historical === true) {
+        this.$store.dispatch("connectionsClear");
+        this.historical = false;
+      } else {
+        this.$store.dispatch("connectionsFetch");
+        this.historical = true;
+      }
+    },
     chartUpdate() {
       if (this.chart) {
         this.chart.setOption(this.chartOptions);
