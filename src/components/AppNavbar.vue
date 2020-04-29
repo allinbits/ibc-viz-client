@@ -10,7 +10,7 @@
           <icon-world class="icon" />
           <div>Universe</div>
         </router-link>
-        <router-link to="/rank" class="button">
+        <router-link to="/zones" class="button">
           <icon-list class="icon" />
           <div>Zones</div>
         </router-link>
