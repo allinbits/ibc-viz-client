@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="container">
+    <div class="container" v-if="sorted.length > 0">
       <div class="item item__heading">
         <div class="item__name">Blockchain</div>
         <div class="item__value">↓</div>
