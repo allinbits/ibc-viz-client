@@ -3,8 +3,8 @@
     <div class="container">
       <div class="item item__heading">
         <div class="item__name">Blockchain</div>
-        <div class="item__value">↑</div>
         <div class="item__value">↓</div>
+        <div class="item__value">↑</div>
         <div class="item__value">∑<sub>tx</sub></div>
       </div>
       <div
@@ -52,7 +52,7 @@ sub {
   width: 100%;
   margin: 0.75rem 0;
   display: grid;
-  grid-template-columns: 1fr 2rem 2rem 2rem;
+  grid-template-columns: 1fr 2.5rem 2.5rem 2.5rem;
   letter-spacing: 0.02em;
   gap: 1rem;
   align-items: center;

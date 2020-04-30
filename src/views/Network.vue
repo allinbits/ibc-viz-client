@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="loading" v-if="loading">{{ loadingText }}...</div>
+    <div class="loading" v-if="loading">Loading...</div>
     <div class="dropdown">
       <div class="toolbar__container" @click="historicalToggle">
         <component
@@ -32,7 +32,7 @@
   text-align: center;
   letter-spacing: 0.01em;
   top: 50vh;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.5);
   font-family: sans-serif;
 }
 .toolbar__container {
@@ -85,8 +85,8 @@ import IconCheckboxFalse from "@/components/IconCheckboxFalse.vue";
 
 const API = process.env.VUE_APP_API_URL;
 
-const stringToRGB = (string) => {
-  const hashCode = (str) => {
+const stringToRGB = string => {
+  const hashCode = str => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -104,36 +104,27 @@ export default {
     return {
       chart: null,
       historical: true,
-      blockchainSelected: false,
+      blockchainSelected: false
     };
   },
   components: {
     IconCheckboxTrue,
-    IconCheckboxFalse,
+    IconCheckboxFalse
   },
   watch: {
     graphSize() {
       this.chartUpdate();
-    },
+    }
   },
   computed: {
     ...mapGetters(["blockchains", "connections", "relations"]),
     connectionsCountMax() {
-      return Math.max(...this.connections.map((c) => c.count));
+      return Math.max(...this.connections.map(c => c.count));
     },
     loading() {
       const connections = this.connections && this.connections.length > 0;
       const blockchains = this.blockchains && this.blockchains.length > 0;
       return !(connections || blockchains);
-    },
-    loadingText() {
-      const items = [
-        "Counting stars",
-        "Setting phasers to stun",
-        "Reticulating splines",
-        "Exploring the universe",
-      ];
-      return items[Math.floor(Math.random() * items.length)];
     },
     graphSize() {
       return (
@@ -141,6 +132,24 @@ export default {
         this.blockchains.length +
         Object.keys(this.blockchains).length
       );
+    },
+    blockchainTransfers() {
+      let data = {};
+      const transfers = this.connections.forEach(c => {
+        const pair = `${this.relations[c.receiver]}-${
+          this.relations[c.sender]
+        }`;
+        if (data[pair]) {
+          data[pair].count = data[pair].count + c.count;
+        } else {
+          data[pair] = {
+            target: this.relations[c.receiver],
+            source: this.relations[c.sender],
+            count: 1
+          };
+        }
+      });
+      return Object.values(data);
     },
     chartOptions() {
       return {
@@ -157,36 +166,36 @@ export default {
             label: {
               formatter: "{b}",
               color: "rgba(255,255,255,.75)",
-              position: "top",
+              position: "top"
             },
             force: {
               edgeLength: 5,
               repulsion: 20,
-              gravity: 0.1,
-            },
-          },
-        ],
+              gravity: 0.1
+            }
+          }
+        ]
       };
     },
     addressNodes() {
       let nodes = [];
-      this.connections.forEach((c) => {
+      this.connections.forEach(c => {
         nodes.push(c.sender);
         nodes.push(c.receiver);
       });
       nodes = [...new Set(nodes)];
-      nodes = nodes.map((addr) => {
+      nodes = nodes.map(addr => {
         return {
           id: addr,
           symbolSize: 3,
           name: addr,
-          category: this.categoryCurrent(this.relations[addr] || "unknown"),
+          category: this.categoryCurrent(this.relations[addr] || "unknown")
         };
       });
       return nodes;
     },
     addressLinks() {
-      const countValues = [...new Set(this.connections.map((c) => c.count))];
+      const countValues = [...new Set(this.connections.map(c => c.count))];
       const connections = orderBy(this.connections, ["count"], ["desc"]);
       return connections.map((c, index) => {
         return {
@@ -197,45 +206,45 @@ export default {
           lineStyle: {
             color: "source",
             curveness: 0.2,
-            opacity: 0.1 + countValues.indexOf(c.count) / countValues.length,
-          },
+            opacity: 0.1 + countValues.indexOf(c.count) / countValues.length
+          }
         };
       });
     },
     blockchainCategories() {
-      let categories = this.blockchains.map((name) => {
+      let categories = this.blockchains.map(name => {
         return {
           name,
           base: name,
           itemStyle: {
-            color: `#${stringToRGB(name)}`,
-          },
+            color: `#${stringToRGB(name)}`
+          }
         };
       });
       const unknown = {
         name: "unknown",
         base: "unknown",
         itemStyle: {
-          color: "#333",
-        },
+          color: "#333"
+        }
       };
       categories.push(unknown);
       return categories;
     },
     blockchainLinks() {
-      return Object.keys(this.relations).map((addr) => {
+      return Object.keys(this.relations).map(addr => {
         return {
           source: this.relations[addr],
           target: addr,
           lineStyle: {
             color: "source",
-            opacity: 0.2,
-          },
+            opacity: 0.2
+          }
         };
       });
     },
     blockchainNodes() {
-      return this.blockchains.map((c) => {
+      return this.blockchains.map(c => {
         return {
           id: c,
           symbolSize: 15,
@@ -243,11 +252,11 @@ export default {
           name: c,
           label: {
             show: true,
-            color: "rgba(255,255,255,.5)",
-          },
+            color: "rgba(255,255,255,.5)"
+          }
         };
       });
-    },
+    }
   },
   methods: {
     categoryCurrent(category) {
@@ -270,12 +279,12 @@ export default {
       if (this.chart) {
         this.chart.setOption(this.chartOptions);
       }
-    },
+    }
   },
   async mounted() {
     this.chart = echarts.init(document.getElementById("chart"));
     window.onresize = this.chart.resize;
     this.chartUpdate();
-  },
+  }
 };
 </script>

@@ -1,11 +1,21 @@
 <template>
-  <div id="chart"></div>
+  <div>
+    <div class="loading">Loading...</div>
+    <div id="chart"></div>
+  </div>
 </template>
 
 <style scoped>
 #chart {
   width: 100vw;
   height: calc(100vh - 3rem);
+}
+.loading {
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.5);
 }
 </style>
 
