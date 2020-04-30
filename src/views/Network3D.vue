@@ -146,7 +146,7 @@ export default {
       return ForceGraph3D()
         .enableNodeDrag(false)
         .nodeAutoColorBy("color")
-        .cooldownTime(15000) // don't self-adjust after loading
+        .cooldownTime(3000) // Time spent applying layout
         .nodeLabel(({ type, id }) => {
           return type === "blockchain" ? `[zone] ${id}` : id;
         })
