@@ -109,13 +109,7 @@ export default {
     IconCheckboxFalse
   },
   watch: {
-    connections() {
-      this.chartUpdate();
-    },
-    blockchains() {
-      this.chartUpdate();
-    },
-    relations() {
+    graphSize() {
       this.chartUpdate();
     }
   },
@@ -137,6 +131,13 @@ export default {
         "Exploring the universe"
       ];
       return items[Math.floor(Math.random() * items.length)];
+    },
+    graphSize() {
+      return (
+        this.connections.length +
+        this.blockchains.length +
+        Object.keys(this.blockchains).length
+      );
     },
     chartOptions() {
       return {
