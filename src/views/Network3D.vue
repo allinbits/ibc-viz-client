@@ -51,8 +51,14 @@ export default {
       socket: null,
       chart: null,
       graph: null,
-      graphElement: null
+      graphElement: null,
+      graphInstance: null
     };
+  },
+  watch: {
+    graphSize() {
+      this.graphInstance.graphData(this.chartData);
+    }
   },
   computed: {
     ...mapGetters(["blockchains", "connections", "relations"]),
@@ -61,6 +67,13 @@ export default {
         nodes: [...this.addressNodes, ...this.blockchainNodes],
         links: [...this.addressLinks, ...this.blockchainLinks]
       };
+    },
+    graphSize() {
+      return (
+        this.connections.length +
+        this.blockchains.length +
+        Object.keys(this.relations).length
+      );
     },
     addressNodes() {
       let nodes = [];
@@ -133,7 +146,6 @@ export default {
       return ForceGraph3D()
         .enableNodeDrag(false)
         .nodeAutoColorBy("color")
-        .warmupTicks(100) // allow the graph to preload itself
         .cooldownTime(15000) // don't self-adjust after loading
         .nodeLabel(({ type, id }) => {
           return type === "blockchain" ? `[zone] ${id}` : id;
@@ -160,12 +172,8 @@ export default {
     this.graph = this.createForceGraph3D();
     this.graphElement = document.getElementById("chart");
     this.graph.scene().add(meshSkybox);
-    await Promise.all([
-      this.$store.dispatch("relationsFetch"),
-      this.$store.dispatch("connectionsFetch"),
-      this.$store.dispatch("blockchainsFetch")
-    ]);
-    this.graph(this.graphElement).graphData(this.chartData);
+    this.graphInstance = this.graph(this.graphElement);
+    this.graphInstance.graphData(this.chartData);
     this.modifyControls(this.graph.controls());
   }
 };
