@@ -130,7 +130,7 @@ export default {
       return (
         this.connections.length +
         this.blockchains.length +
-        Object.keys(this.blockchains).length
+        Object.keys(this.relations).length
       );
     },
     blockchainTransfers() {
