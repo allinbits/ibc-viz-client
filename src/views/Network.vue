@@ -1,6 +1,7 @@
 <template>
   <div>
     <div class="loading" v-if="loading">Loading...</div>
+    <div class="desc">Connections based on client ID and counterparty client ID.</div>
     <!-- <div class="dropdown">
       <div class="toolbar__container" @click="historicalToggle">
         <component
@@ -19,6 +20,19 @@
 </template>
 
 <style scoped>
+.desc {
+  color: rgba(255, 255, 255, 0.85);
+  position: fixed;
+  background: rgba(21, 21, 21, 0.5);
+  letter-spacing: 0.02em;
+  font-size: 0.875rem;
+  top: 4rem;
+  width: 100%;
+  z-index: 2000;
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
 #chart {
   width: 100vw;
   position: fixed;
@@ -313,6 +327,7 @@ export default {
   async mounted() {
     this.chart = echarts.init(document.getElementById("chart"));
     window.onresize = this.chart.resize;
+    this.chartUpdate();
   }
 };
 </script>
