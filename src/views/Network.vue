@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="loading" v-if="loading">Loading...</div>
-    <div class="dropdown">
+    <!-- <div class="dropdown">
       <div class="toolbar__container" @click="historicalToggle">
         <component
           :is="`icon-checkbox-${!!historical}`"
@@ -13,7 +13,7 @@
         <option :value="false">All blockchains</option>
         <option v-for="b in blockchains" :value="b" :key="b">{{ b }}</option>
       </select>
-    </div>
+    </div> -->
     <div id="chart"></div>
   </div>
 </template>
@@ -114,10 +114,33 @@ export default {
   watch: {
     graphSize() {
       this.chartUpdate();
+    },
+    clientConnectionNodes() {
+      this.chartUpdate();
     }
   },
   computed: {
-    ...mapGetters(["blockchains", "connections", "relations"]),
+    ...mapGetters([
+      "blockchains",
+      "connections",
+      "relations",
+      "counterpartyClientId",
+      "createClient"
+    ]),
+    clientConnectionNodes() {
+      let data = [];
+      Object.keys(this.createClient).forEach(key => {
+        const source = this.createClient[key];
+        const target = this.counterpartyClientId[key];
+        if (target) {
+          data.push({
+            source,
+            target
+          });
+        }
+      });
+      return data;
+    },
     connectionsCountMax() {
       return Math.max(...this.connections.map(c => c.count));
     },
@@ -127,11 +150,15 @@ export default {
       return !(connections || blockchains);
     },
     graphSize() {
-      return (
-        this.connections.length +
-        this.blockchains.length +
-        Object.keys(this.relations).length
-      );
+      if (this.connections && this.blockchains && this.relations) {
+        return (
+          this.connections.length +
+          this.blockchains.length +
+          Object.keys(this.relations).length
+        );
+      } else {
+        return 0;
+      }
     },
     blockchainTransfers() {
       let data = {};
@@ -160,8 +187,10 @@ export default {
             layout: "force",
             width: "100px",
             roam: true,
-            nodes: [...this.addressNodes, ...this.blockchainNodes],
-            links: [...this.addressLinks, ...this.blockchainLinks],
+            nodes: [...this.blockchainNodes],
+            links: [...this.clientConnectionNodes],
+            // nodes: [...this.addressNodes, ...this.blockchainNodes],
+            // links: [...this.addressLinks, ...this.blockchainLinks],
             categories: [...this.blockchainCategories],
             label: {
               formatter: "{b}",
@@ -169,8 +198,8 @@ export default {
               position: "top"
             },
             force: {
-              edgeLength: 5,
-              repulsion: 20,
+              edgeLength: 50,
+              repulsion: 50,
               gravity: 0.1
             }
           }
@@ -247,7 +276,7 @@ export default {
       return this.blockchains.map(c => {
         return {
           id: c,
-          symbolSize: 15,
+          symbolSize: 10,
           category: this.categoryCurrent(c),
           name: c,
           label: {
@@ -284,7 +313,6 @@ export default {
   async mounted() {
     this.chart = echarts.init(document.getElementById("chart"));
     window.onresize = this.chart.resize;
-    this.chartUpdate();
   }
 };
 </script>

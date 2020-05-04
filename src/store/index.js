@@ -15,10 +15,18 @@ export const store = new Vuex.Store({
     relations: {},
     blockchains: [],
     connections: [],
+    counterpartyClientId: {},
+    createClient: {},
   },
   getters: {
     blockchains(state) {
       return state.blockchains;
+    },
+    counterpartyClientId(state) {
+      return state.counterpartyClientId;
+    },
+    createClient(state) {
+      return state.createClient;
     },
     relations(state) {
       const relations = {};
@@ -59,6 +67,15 @@ export const store = new Vuex.Store({
     relationsCreate(state, { relations }) {
       state.relations = { ...state.relations, ...relations };
     },
+    counterpartyClientIdCreate(state, { counterpartyClientId }) {
+      state.counterpartyClientId = {
+        ...state.counterpartyClientId,
+        ...counterpartyClientId,
+      };
+    },
+    createClientCreate(state, { createClient }) {
+      state.createClient = { ...state.createClient, ...createClient };
+    },
   },
   actions: {
     connectionsUpsert({ state, commit }, tx) {
@@ -86,6 +103,9 @@ export const store = new Vuex.Store({
           dispatch("connectionsUpsert", tx);
         }
       });
+      socket.on("all", (tx) => {
+        console.log(tx);
+      });
     },
     async relationsFetch({ commit }) {
       return new Promise(async (resolve) => {
@@ -97,7 +117,7 @@ export const store = new Vuex.Store({
     },
     async connectionsFetch({ commit }) {
       return new Promise(async (resolve) => {
-        const url = `${API}/transfers/connections`;
+        const url = `${API}/connections`;
         const connections = (await axios.get(url)).data;
         commit("connectionsUpdate", { connections });
         resolve(true);
@@ -109,8 +129,27 @@ export const store = new Vuex.Store({
     async blockchainsFetch({ commit }) {
       return new Promise(async (resolve) => {
         const url = `${API}/blockchains`;
-        const blockchains = (await axios.get(url)).data;
+        let blockchains = (await axios.get(url)).data;
+        blockchains = blockchains.map((b) => {
+          return b.node_addr;
+        });
         commit("blockchainsCreate", { blockchains });
+        resolve(true);
+      });
+    },
+    async counterpartyClientIdFetch({ commit }) {
+      return new Promise(async (resolve) => {
+        const url = `${API}/counterparty_client_id`;
+        let counterpartyClientId = (await axios.get(url)).data;
+        commit("counterpartyClientIdCreate", { counterpartyClientId });
+        resolve(true);
+      });
+    },
+    async createClientFetch({ commit }) {
+      return new Promise(async (resolve) => {
+        const url = `${API}/create_client`;
+        let createClient = (await axios.get(url)).data;
+        commit("createClientCreate", { createClient });
         resolve(true);
       });
     },

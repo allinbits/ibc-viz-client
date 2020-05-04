@@ -58,14 +58,23 @@ export default {
   watch: {
     graphSize() {
       this.graphInstance.graphData(this.chartData);
+    },
+    clientConnectionNodes() {
+      this.graphInstance.graphData(this.chartData);
     }
   },
   computed: {
-    ...mapGetters(["blockchains", "connections", "relations"]),
+    ...mapGetters([
+      "blockchains",
+      "connections",
+      "relations",
+      "counterpartyClientId",
+      "createClient"
+    ]),
     chartData() {
       return {
-        nodes: [...this.addressNodes, ...this.blockchainNodes],
-        links: [...this.addressLinks, ...this.blockchainLinks]
+        nodes: [...this.blockchainNodes],
+        links: [...this.clientConnectionNodes]
       };
     },
     graphSize() {
@@ -101,6 +110,17 @@ export default {
           type: "address"
         };
       });
+    },
+    clientConnectionNodes() {
+      let data = [];
+      Object.keys(this.createClient).forEach(key => {
+        const source = this.createClient[key];
+        const target = this.counterpartyClientId[key];
+        if (target) {
+          data.push({ source, target });
+        }
+      });
+      return data;
     },
     blockchainLinks() {
       let links = [];

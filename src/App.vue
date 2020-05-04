@@ -26,11 +26,13 @@ export default {
   components: {
     AppLayout
   },
-  mounted() {
+  created() {
     this.$store.dispatch("socketSubscribe");
     this.$store.dispatch("relationsFetch");
     this.$store.dispatch("connectionsFetch");
     this.$store.dispatch("blockchainsFetch");
+    this.$store.dispatch("counterpartyClientIdFetch");
+    this.$store.dispatch("createClientFetch");
   }
 };
 </script>
