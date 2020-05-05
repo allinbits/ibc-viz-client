@@ -1,26 +1,17 @@
 <template>
   <div>
-    <div class="container" v-if="sorted.length > 0">
+    <div class="container">
       <div class="item item__heading">
         <div class="item__name">Blockchain</div>
         <div class="item__value">↓</div>
         <div class="item__value">↑</div>
         <div class="item__value">∑<sub>tx</sub></div>
       </div>
-      <div
-        :class="['item', `item__status__${status(item.status)}`]"
-        v-for="item in sorted"
-        :key="item.blockchain"
-      >
-        <div class="item__label">
-          <div>
-            {{ item.blockchain }}
-            <sup v-if="status(item.status) === 'down'">offline</sup>
-          </div>
-        </div>
-        <div class="item__value" :title="item.incoming">{{ kFormatter(item.incoming) }}</div>
-        <div class="item__value" :title="item.outgoing">{{ kFormatter(item.outgoing) }}</div>
-        <div class="item__value" :title="item.total">{{ kFormatter(item.total) }}</div>
+      <div class="item" v-for="item in sorted" :key="item.node_addr">
+        <div class="item__label">{{item.chain_id}}</div>
+        <div class="item__value" v-if="ranking[item.node_addr]">{{ kFormatter(ranking[item.node_addr].incoming) }}</div>
+        <div class="item__value" v-if="ranking[item.node_addr]">{{ kFormatter(ranking[item.node_addr].outgoing) }}</div>
+        <div class="item__value" v-if="ranking[item.node_addr]">{{ kFormatter(ranking[item.node_addr].incoming + ranking[item.node_addr].outgoing) }}</div>
       </div>
     </div>
   </div>
@@ -114,46 +105,58 @@ export default {
   },
   data: function() {
     return {
-      blockchains: []
+      blockchains: [],
+      ranking: {}
     };
   },
   computed: {
     sorted() {
       const blockchains = this.blockchains.map(b => {
+        const count = this.ranking[b.node_addr] || {};
+        const incoming = count.incoming || 0;
+        const outgoing = count.outgoing || 0;
         return {
           ...b,
-          total: b.incoming + b.outgoing
+          incoming,
+          outgoing,
+          total: incoming + outgoing
         };
       });
       return orderBy(blockchains, ["status", "total"], ["desc", "desc"]);
     }
   },
   methods: {
-    status(n) {
-      if (n === 2) return "up";
-      if (n === 1) return "down";
-      return "unknown";
-    },
+    // status(n) {
+    //   if (n === 2) return "up";
+    //   if (n === 1) return "down";
+    //   return "unknown";
+    // },
     kFormatter
   },
   async created() {
-    this.blockchains = (await axios.get(`${API}/ranking`)).data.map(b => {
-      return {
-        ...b,
-        status: 0
-      };
+    axios.get(`${API}/blockchains`).then(({ data }) => {
+      this.blockchains = data;
     });
-    this.blockchains.forEach(async b => {
-      const item = find(this.blockchains, ["blockchain", b.blockchain]);
-      let status;
-      try {
-        await axios.get(`${API}/health?blockchain=${b.blockchain}`);
-        status = 2;
-      } catch {
-        status = 1;
-      }
-      this.$set(item, "status", status);
+    axios.get(`${API}/ranking`).then(({ data }) => {
+      this.ranking = data;
     });
+    // this.blockchains = (await axios.get(`${API}/ranking`)).data.map(b => {
+    //   return {
+    //     ...b,
+    //     status: 0
+    //   };
+    // });
+    // this.blockchains.forEach(async b => {
+    //   const item = find(this.blockchains, ["blockchain", b.blockchain]);
+    //   let status;
+    //   try {
+    //     await axios.get(`${API}/health?blockchain=${b.blockchain}`);
+    //     status = 2;
+    //   } catch {
+    //     status = 1;
+    //   }
+    //   this.$set(item, "status", status);
+    // });
   }
 };
 </script>
