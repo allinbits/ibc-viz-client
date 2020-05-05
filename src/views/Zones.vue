@@ -135,7 +135,12 @@ export default {
   },
   async created() {
     axios.get(`${API}/blockchains`).then(({ data }) => {
-      this.blockchains = data;
+      this.blockchains = data.map(b => {
+        return {
+          ...b,
+          node_addr: b.node_addr.split(":")[0]
+        };
+      });
     });
     axios.get(`${API}/ranking`).then(({ data }) => {
       this.ranking = data;

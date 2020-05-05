@@ -131,7 +131,7 @@ export const store = new Vuex.Store({
         const url = `${API}/blockchains`;
         let blockchains = (await axios.get(url)).data;
         blockchains = blockchains.map((b) => {
-          return b.node_addr;
+          return b.node_addr.split(":")[0];
         });
         commit("blockchainsCreate", { blockchains });
         resolve(true);
