@@ -17,6 +17,7 @@ export const store = new Vuex.Store({
     connections: [],
     counterpartyClientId: {},
     createClient: {},
+    socketMessages: [],
   },
   getters: {
     blockchains(state) {
@@ -27,6 +28,9 @@ export const store = new Vuex.Store({
     },
     createClient(state) {
       return state.createClient;
+    },
+    socketMessages(state) {
+      return state.socketMessages;
     },
     relations(state) {
       const relations = {};
@@ -76,6 +80,9 @@ export const store = new Vuex.Store({
     createClientCreate(state, { createClient }) {
       state.createClient = { ...state.createClient, ...createClient };
     },
+    socketMessagesCreate(state, { tx }) {
+      state.socketMessages = [...state.socketMessages, tx];
+    },
   },
   actions: {
     connectionsUpsert({ state, commit }, tx) {
@@ -96,7 +103,7 @@ export const store = new Vuex.Store({
         });
       }
     },
-    socketSubscribe({ dispatch }) {
+    socketSubscribe({ dispatch, commit }) {
       let socket = io(`${API}`);
       socket.on("tx", (tx) => {
         if (tx.type === "send_packet") {
@@ -105,6 +112,7 @@ export const store = new Vuex.Store({
       });
       socket.on("all", (tx) => {
         console.log(tx);
+        commit("socketMessagesCreate", { tx });
       });
     },
     async relationsFetch({ commit }) {

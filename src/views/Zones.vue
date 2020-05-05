@@ -87,6 +87,7 @@ sub {
 import axios from "axios";
 import { orderBy, find } from "lodash";
 import IconCircle from "@/components/IconCircle.vue";
+import { mapGetters } from "vuex";
 
 const API = process.env.VUE_APP_API_URL;
 
@@ -109,7 +110,17 @@ export default {
       ranking: {}
     };
   },
+  watch: {
+    socketMessages(newVal) {
+      const tx = newVal[newVal.length - 1];
+      const incoming = find(Object.values(tx.events), ["type", "recv_packet"]);
+      const outgoing = find(Object.values(tx.events), ["type", "send_packet"]);
+      if (incoming) this.ranking[tx.domain].incoming++;
+      if (outgoing) this.ranking[tx.domain].outgoing++;
+    }
+  },
   computed: {
+    ...mapGetters(["socketMessages"]),
     sorted() {
       const blockchains = this.blockchains.map(b => {
         const count = this.ranking[b.node_addr] || {};
