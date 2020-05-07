@@ -78,6 +78,11 @@ export const store = new Vuex.Store({
                   const value = JSON.parse(a.value).value;
                   let address = {};
                   address[value.receiver] = tx.blockchain;
+                  const packet = {
+                    sender: value.sender,
+                    receiver: value.receiver,
+                  };
+                  commit("packetsCreate", { packet });
                   commit("addressesCreate", { address });
                 }
               });

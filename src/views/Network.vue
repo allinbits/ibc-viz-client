@@ -128,9 +128,6 @@ export default {
   watch: {
     graphSize() {
       this.chartUpdate();
-    },
-    clientConnectionNodes() {
-      this.chartUpdate();
     }
   },
   computed: {
@@ -150,10 +147,15 @@ export default {
       });
     },
     addressNodes() {
-      return Object.keys(this.addresses).map(a => {
+      let addrs = [...Object.keys(this.addresses)];
+      this.packets.forEach(p => {
+        addrs.push(p.sender);
+        addrs.push(p.receiver);
+      });
+      return [...new Set(addrs)].map(a => {
         return {
           id: a,
-          symbolSize: 5,
+          symbolSize: 3,
           name: a,
           category: "unknown"
         };
@@ -182,7 +184,11 @@ export default {
     //   return !(connections || blockchains);
     // },
     graphSize() {
-      return this.blockchains.length + this.packets.length;
+      return (
+        this.blockchains.length +
+        this.packets.length +
+        Object.keys(this.addressNodes).length
+      );
     },
     // blockchainTransfers() {
     //   let data = {};
