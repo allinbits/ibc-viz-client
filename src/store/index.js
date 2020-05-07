@@ -76,14 +76,17 @@ export const store = new Vuex.Store({
               e.attributes.forEach((a) => {
                 if (a.key === "packet_data") {
                   const value = JSON.parse(a.value).value;
-                  let address = {};
-                  address[value.receiver] = tx.blockchain;
                   const packet = {
                     sender: value.sender,
                     receiver: value.receiver,
                   };
+                  console.log(
+                    "recv_packet",
+                    tx.blockchain,
+                    value.sender,
+                    value.receiver
+                  );
                   commit("packetsCreate", { packet });
-                  commit("addressesCreate", { address });
                 }
               });
             }
@@ -91,10 +94,19 @@ export const store = new Vuex.Store({
               e.attributes.forEach((a) => {
                 if (a.key === "packet_data") {
                   const value = JSON.parse(a.value).value;
+                  let address = {};
+                  address[value.sender] = tx.blockchain;
                   const packet = {
                     sender: value.sender,
                     receiver: value.receiver,
                   };
+                  console.log(
+                    "send_packet",
+                    tx.blockchain,
+                    value.sender,
+                    value.receiver
+                  );
+                  commit("addressesCreate", { address });
                   commit("packetsCreate", { packet });
                 }
               });
@@ -107,7 +119,7 @@ export const store = new Vuex.Store({
               }
             });
           });
-          console.log(tx);
+          // console.log(tx);
         }
       });
     },
