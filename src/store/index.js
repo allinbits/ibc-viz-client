@@ -12,127 +12,99 @@ export const store = new Vuex.Store({
   strict: true,
   state: {
     txs: [],
-    relations: {},
     blockchains: [],
-    connections: [],
-    counterpartyClientId: {},
-    createClient: {},
-    socketMessages: [],
+    addresses: {},
+    packets: [],
   },
   getters: {
     blockchains(state) {
       return state.blockchains;
     },
-    counterpartyClientId(state) {
-      return state.counterpartyClientId;
+    txs(state) {
+      return state.txs;
     },
-    createClient(state) {
-      return state.createClient;
+    addresses(state) {
+      return state.addresses;
     },
-    socketMessages(state) {
-      return state.socketMessages;
-    },
-    relations(state) {
-      const relations = {};
-      state.connections.forEach((c) => {
-        if (c.type === "send_packet") {
-          relations[c.sender] = c.blockchain;
-        }
-        if (c.type === "recv_packet") {
-          relations[c.receiver] = c.blockchain;
-        }
-      });
-      return { ...relations, ...state.relations };
-    },
-    connections(state) {
-      return state.connections;
+    packets(state) {
+      return state.packets;
     },
   },
   mutations: {
-    connectionsUpdate(state, { index, connections }) {
-      connections.forEach((connection) => {
-        const index = findIndex(state.connections, {
-          sender: connection.sender,
-          receiver: connection.receiver,
-        });
-        if (index >= 0) {
-          Vue.set(state.connections, index, connection);
-        } else {
-          state.connections = [...state.connections, connection];
-        }
-      });
-    },
-    connectionsClear(state) {
-      state.connections = [];
-    },
     blockchainsCreate(state, { blockchains }) {
       state.blockchains = [...new Set([...state.blockchains, ...blockchains])];
     },
-    relationsCreate(state, { relations }) {
-      state.relations = { ...state.relations, ...relations };
+    txsCreate(state, { tx }) {
+      state.txs = [...state.txs, tx];
     },
-    counterpartyClientIdCreate(state, { counterpartyClientId }) {
-      state.counterpartyClientId = {
-        ...state.counterpartyClientId,
-        ...counterpartyClientId,
-      };
+    packetsCreate(state, { packet }) {
+      state.packets = [...state.packets, packet];
     },
-    createClientCreate(state, { createClient }) {
-      state.createClient = { ...state.createClient, ...createClient };
-    },
-    socketMessagesCreate(state, { tx }) {
-      state.socketMessages = [...state.socketMessages, tx];
+    addressesCreate(state, { address }) {
+      state.addresses = { ...state.addresses, ...address };
     },
   },
   actions: {
-    connectionsUpsert({ state, commit }, tx) {
-      const connection = {
-        sender: tx.sender,
-        receiver: tx.receiver,
-        blockchain: tx.blockchain,
-        type: tx.type,
-      };
-      const existing = find(state.connections, connection);
-      if (existing) {
-        commit("connectionsUpdate", {
-          connections: [{ ...existing, count: existing.count + 1 }],
-        });
-      } else {
-        commit("connectionsUpdate", {
-          connections: [{ ...connection, count: 1 }],
-        });
-      }
-    },
     socketSubscribe({ dispatch, commit }) {
       let socket = io(`${API}`);
-      socket.on("tx", (tx) => {
-        if (tx.type === "send_packet") {
-          dispatch("connectionsUpsert", tx);
+      socket.on("tx", (msg) => {
+        if (
+          msg.result.data &&
+          msg.result.data.value &&
+          msg.result.data.value.TxResult &&
+          msg.result.data.value.TxResult.result &&
+          msg.result.data.value.TxResult.result.events
+        ) {
+          const result = msg.result.data.value.TxResult;
+          const tx = {
+            blockchain: msg.blockchain,
+            height: result.height,
+            events: result.result.events.map((e) => {
+              return {
+                ...e,
+                attributes: e.attributes.map(({ key, value }) => {
+                  return {
+                    key: atob(key),
+                    value: atob(value),
+                  };
+                }),
+              };
+            }),
+          };
+          tx.events.forEach((e) => {
+            if (e.type === "recv_packet") {
+              e.attributes.forEach((a) => {
+                if (a.key === "packet_data") {
+                  const value = JSON.parse(a.value).value;
+                  let address = {};
+                  address[value.receiver] = tx.blockchain;
+                  commit("addressesCreate", { address });
+                }
+              });
+            }
+            if (e.type === "send_packet") {
+              e.attributes.forEach((a) => {
+                if (a.key === "packet_data") {
+                  const value = JSON.parse(a.value).value;
+                  const packet = {
+                    sender: value.sender,
+                    receiver: value.receiver,
+                  };
+                  commit("packetsCreate", { packet });
+                }
+              });
+            }
+            e.attributes.forEach((a) => {
+              let address = {};
+              if (a.key === "sender") {
+                address[a.value] = tx.blockchain;
+                commit("addressesCreate", { address });
+              }
+            });
+          });
+          console.log(tx);
         }
       });
-      socket.on("all", (tx) => {
-        console.log(tx);
-        commit("socketMessagesCreate", { tx });
-      });
-    },
-    async relationsFetch({ commit }) {
-      return new Promise(async (resolve) => {
-        const url = `${API}/relations`;
-        const relations = (await axios.get(url)).data;
-        commit("relationsCreate", { relations });
-        resolve(true);
-      });
-    },
-    async connectionsFetch({ commit }) {
-      return new Promise(async (resolve) => {
-        const url = `${API}/connections`;
-        const connections = (await axios.get(url)).data;
-        commit("connectionsUpdate", { connections });
-        resolve(true);
-      });
-    },
-    connectionsClear({ commit }) {
-      commit("connectionsClear");
     },
     async blockchainsFetch({ commit }) {
       return new Promise(async (resolve) => {
@@ -142,22 +114,6 @@ export const store = new Vuex.Store({
           return b.node_addr.split(":")[0];
         });
         commit("blockchainsCreate", { blockchains });
-        resolve(true);
-      });
-    },
-    async counterpartyClientIdFetch({ commit }) {
-      return new Promise(async (resolve) => {
-        const url = `${API}/counterparty_client_id`;
-        let counterpartyClientId = (await axios.get(url)).data;
-        commit("counterpartyClientIdCreate", { counterpartyClientId });
-        resolve(true);
-      });
-    },
-    async createClientFetch({ commit }) {
-      return new Promise(async (resolve) => {
-        const url = `${API}/create_client`;
-        let createClient = (await axios.get(url)).data;
-        commit("createClientCreate", { createClient });
         resolve(true);
       });
     },

@@ -5,9 +5,9 @@
       <keep-alive include="network,zones,network3d">
         <router-view />
       </keep-alive>
-      <div class="navbar">
+      <!-- <div class="navbar">
         <app-navbar :dark="$route.fullPath === '/3d'" />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>

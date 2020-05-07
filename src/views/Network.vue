@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="loading" v-if="loading">Loading...</div>
-    <div class="desc">Connections based on client ID and counterparty client ID.</div>
+    <!-- <div class="loading" v-if="loading">Loading...</div> -->
+    <!-- <div class="desc">Connections based on client ID and counterparty client ID.</div> -->
     <!-- <div class="dropdown">
       <div class="toolbar__container" @click="historicalToggle">
         <component
@@ -134,64 +134,74 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      "blockchains",
-      "connections",
-      "relations",
-      "counterpartyClientId",
-      "createClient"
-    ]),
-    clientConnectionNodes() {
-      let data = [];
-      Object.keys(this.createClient).forEach(key => {
-        const source = this.createClient[key];
-        const target = this.counterpartyClientId[key];
-        if (target) {
-          data.push({
-            source,
-            target
-          });
-        }
+    ...mapGetters(["blockchains", "txs", "addresses", "packets"]),
+    packetsLinks() {
+      return this.packets.map(p => {
+        return {
+          source: this.addresses[p.sender] || p.sender,
+          target: this.addresses[p.receiver] || p.receiver,
+          symbol: [null, "arrow"],
+          symbolSize: 6,
+          lineStyle: {
+            color: "source",
+            curveness: 0.2
+          }
+        };
       });
-      return data;
     },
-    connectionsCountMax() {
-      return Math.max(...this.connections.map(c => c.count));
+    addressNodes() {
+      return Object.keys(this.addresses).map(a => {
+        return {
+          id: a,
+          symbolSize: 5,
+          name: a,
+          category: "unknown"
+        };
+      });
     },
-    loading() {
-      const connections = this.connections && this.connections.length > 0;
-      const blockchains = this.blockchains && this.blockchains.length > 0;
-      return !(connections || blockchains);
-    },
+    // clientConnectionNodes() {
+    //   let data = [];
+    //   Object.keys(this.createClient).forEach(key => {
+    //     const source = this.createClient[key];
+    //     const target = this.counterpartyClientId[key];
+    //     if (target) {
+    //       data.push({
+    //         source,
+    //         target
+    //       });
+    //     }
+    //   });
+    //   return data;
+    // },
+    // connectionsCountMax() {
+    //   return Math.max(...this.connections.map(c => c.count));
+    // },
+    // loading() {
+    //   const connections = this.connections && this.connections.length > 0;
+    //   const blockchains = this.blockchains && this.blockchains.length > 0;
+    //   return !(connections || blockchains);
+    // },
     graphSize() {
-      if (this.connections && this.blockchains && this.relations) {
-        return (
-          this.connections.length +
-          this.blockchains.length +
-          Object.keys(this.relations).length
-        );
-      } else {
-        return 0;
-      }
+      return this.blockchains.length + this.packets.length;
     },
-    blockchainTransfers() {
-      let data = {};
-      const transfers = this.connections.forEach(c => {
-        const pair = `${this.relations[c.receiver]}-${
-          this.relations[c.sender]
-        }`;
-        if (data[pair]) {
-          data[pair].count = data[pair].count + c.count;
-        } else {
-          data[pair] = {
-            target: this.relations[c.receiver],
-            source: this.relations[c.sender],
-            count: 1
-          };
-        }
-      });
-      return Object.values(data);
-    },
+    // blockchainTransfers() {
+    //   let data = {};
+    //   const transfers = this.connections.forEach(c => {
+    //     const pair = `${this.relations[c.receiver]}-${
+    //       this.relations[c.sender]
+    //     }`;
+    //     if (data[pair]) {
+    //       data[pair].count = data[pair].count + c.count;
+    //     } else {
+    //       data[pair] = {
+    //         target: this.relations[c.receiver],
+    //         source: this.relations[c.sender],
+    //         count: 1
+    //       };
+    //     }
+    //   });
+    //   return Object.values(data);
+    // },
     chartOptions() {
       return {
         series: [
@@ -201,9 +211,9 @@ export default {
             layout: "force",
             width: "100px",
             roam: true,
-            nodes: [...this.blockchainNodes],
-            links: [...this.clientConnectionNodes],
-            // nodes: [...this.addressNodes, ...this.blockchainNodes],
+            nodes: [...this.blockchainNodes, ...this.addressNodes],
+            links: [...this.packetsLinks],
+            // links: [...this.clientConnectionNodes],
             // links: [...this.addressLinks, ...this.blockchainLinks],
             categories: [...this.blockchainCategories],
             label: {
@@ -220,40 +230,40 @@ export default {
         ]
       };
     },
-    addressNodes() {
-      let nodes = [];
-      this.connections.forEach(c => {
-        nodes.push(c.sender);
-        nodes.push(c.receiver);
-      });
-      nodes = [...new Set(nodes)];
-      nodes = nodes.map(addr => {
-        return {
-          id: addr,
-          symbolSize: 3,
-          name: addr,
-          category: this.categoryCurrent(this.relations[addr] || "unknown")
-        };
-      });
-      return nodes;
-    },
-    addressLinks() {
-      const countValues = [...new Set(this.connections.map(c => c.count))];
-      const connections = orderBy(this.connections, ["count"], ["desc"]);
-      return connections.map((c, index) => {
-        return {
-          source: c.sender,
-          target: c.receiver,
-          symbol: [null, "arrow"],
-          symbolSize: 6,
-          lineStyle: {
-            color: "source",
-            curveness: 0.2,
-            opacity: 0.1 + countValues.indexOf(c.count) / countValues.length
-          }
-        };
-      });
-    },
+    // addressNodes() {
+    //   let nodes = [];
+    //   this.connections.forEach(c => {
+    //     nodes.push(c.sender);
+    //     nodes.push(c.receiver);
+    //   });
+    //   nodes = [...new Set(nodes)];
+    //   nodes = nodes.map(addr => {
+    //     return {
+    //       id: addr,
+    //       symbolSize: 3,
+    //       name: addr,
+    //       category: this.categoryCurrent(this.relations[addr] || "unknown")
+    //     };
+    //   });
+    //   return nodes;
+    // },
+    // addressLinks() {
+    //   const countValues = [...new Set(this.connections.map(c => c.count))];
+    //   const connections = orderBy(this.connections, ["count"], ["desc"]);
+    //   return connections.map((c, index) => {
+    //     return {
+    //       source: c.sender,
+    //       target: c.receiver,
+    //       symbol: [null, "arrow"],
+    //       symbolSize: 6,
+    //       lineStyle: {
+    //         color: "source",
+    //         curveness: 0.2,
+    //         opacity: 0.1 + countValues.indexOf(c.count) / countValues.length
+    //       }
+    //     };
+    //   });
+    // },
     blockchainCategories() {
       let categories = this.blockchains.map(name => {
         return {
@@ -274,18 +284,18 @@ export default {
       categories.push(unknown);
       return categories;
     },
-    blockchainLinks() {
-      return Object.keys(this.relations).map(addr => {
-        return {
-          source: this.relations[addr],
-          target: addr,
-          lineStyle: {
-            color: "source",
-            opacity: 0.2
-          }
-        };
-      });
-    },
+    // blockchainLinks() {
+    //   return Object.keys(this.relations).map(addr => {
+    //     return {
+    //       source: this.relations[addr],
+    //       target: addr,
+    //       lineStyle: {
+    //         color: "source",
+    //         opacity: 0.2
+    //       }
+    //     };
+    //   });
+    // },
     blockchainNodes() {
       return this.blockchains.map(c => {
         return {
@@ -309,15 +319,15 @@ export default {
         return "unknown";
       }
     },
-    historicalToggle() {
-      if (this.historical === true) {
-        this.$store.dispatch("connectionsClear");
-        this.historical = false;
-      } else {
-        this.$store.dispatch("connectionsFetch");
-        this.historical = true;
-      }
-    },
+    // historicalToggle() {
+    //   if (this.historical === true) {
+    //     this.$store.dispatch("connectionsClear");
+    //     this.historical = false;
+    //   } else {
+    //     this.$store.dispatch("connectionsFetch");
+    //     this.historical = true;
+    //   }
+    // },
     chartUpdate() {
       if (this.chart) {
         this.chart.setOption(this.chartOptions);
