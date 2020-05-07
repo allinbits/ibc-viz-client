@@ -86,6 +86,9 @@ export const store = new Vuex.Store({
                     value.sender,
                     value.receiver
                   );
+                  let address = {};
+                  address[value.receiver] = tx.blockchain;
+                  commit("addressesCreate", { address });
                   commit("packetsCreate", { packet });
                 }
               });
@@ -119,7 +122,7 @@ export const store = new Vuex.Store({
               }
             });
           });
-          // console.log(tx);
+          console.log(tx);
         }
       });
     },

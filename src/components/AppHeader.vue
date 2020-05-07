@@ -7,9 +7,9 @@
         </div>
         <div class="h2">by AiB Inc.</div>
       </div>
-      <!-- <router-link to="/about" tag="div">
+      <router-link to="/about" tag="div">
         <icon-info class="icon-info" />
-      </router-link> -->
+      </router-link>
     </div>
   </div>
 </template>

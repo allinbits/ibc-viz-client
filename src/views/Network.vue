@@ -146,6 +146,17 @@ export default {
         };
       });
     },
+    addressLinks() {
+      return Object.keys(this.addresses).map(a => {
+        return {
+          source: a,
+          target: this.addresses[a],
+          lineStyle: {
+            opacity: 0.1
+          }
+        };
+      });
+    },
     addressNodes() {
       let addrs = [...Object.keys(this.addresses)];
       this.packets.forEach(p => {
@@ -157,6 +168,22 @@ export default {
           id: a,
           symbolSize: 3,
           name: a,
+          category: this.addresses[a] || "unknown"
+        };
+      });
+    },
+    addressesUnknownNodes() {
+      let nodes = [];
+      this.packets.forEach(p => {
+        if (!this.addresses[p.receiver]) {
+          nodes.push(p.receiver);
+        }
+      });
+      return [...new Set(nodes)].map(n => {
+        return {
+          id: n,
+          name: n,
+          symbolSize: 3,
           category: "unknown"
         };
       });
@@ -187,7 +214,7 @@ export default {
       return (
         this.blockchains.length +
         this.packets.length +
-        Object.keys(this.addressNodes).length
+        Object.keys(this.addressesUnknownNodes).length
       );
     },
     // blockchainTransfers() {
@@ -217,8 +244,8 @@ export default {
             layout: "force",
             width: "100px",
             roam: true,
-            nodes: [...this.blockchainNodes, ...this.addressNodes],
-            links: [...this.packetsLinks],
+            nodes: [...this.blockchainNodes, ...this.addressesUnknownNodes],
+            links: [...this.packetsLinks, ...this.addressLinks],
             // links: [...this.clientConnectionNodes],
             // links: [...this.addressLinks, ...this.blockchainLinks],
             categories: [...this.blockchainCategories],
