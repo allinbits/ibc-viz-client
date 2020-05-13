@@ -80,16 +80,12 @@ export const store = new Vuex.Store({
                     sender: value.sender,
                     receiver: value.receiver,
                   };
-                  console.log(
-                    "recv_packet",
-                    tx.blockchain,
-                    value.sender,
-                    value.receiver
-                  );
                   let address = {};
                   address[value.receiver] = tx.blockchain;
                   commit("addressesCreate", { address });
                   commit("packetsCreate", { packet });
+                  // console.log("addressesCreate", address);
+                  console.log("recv", tx.blockchain, e);
                 }
               });
             }
@@ -103,26 +99,22 @@ export const store = new Vuex.Store({
                     sender: value.sender,
                     receiver: value.receiver,
                   };
-                  console.log(
-                    "send_packet",
-                    tx.blockchain,
-                    value.sender,
-                    value.receiver
-                  );
                   commit("addressesCreate", { address });
                   commit("packetsCreate", { packet });
+                  // console.log("addressesCreate", address);
+                  console.log("send", tx.blockchain, e);
                 }
               });
             }
-            e.attributes.forEach((a) => {
-              let address = {};
-              if (a.key === "sender") {
-                address[a.value] = tx.blockchain;
-                commit("addressesCreate", { address });
-              }
-            });
+            // e.attributes.forEach((a) => {
+            //   let address = {};
+            //   if (a.key === "sender") {
+            //     address[a.value] = tx.blockchain;
+            //     commit("addressesCreate", { address });
+            //   }
+            // });
           });
-          console.log(tx);
+          // console.log(tx);
         }
       });
     },

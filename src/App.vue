@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <app-layout />
+    <!-- <app-layout /> -->
   </div>
 </template>
 
@@ -27,8 +27,9 @@ export default {
     AppLayout
   },
   created() {
-    this.$store.dispatch("socketSubscribe");
-    this.$store.dispatch("blockchainsFetch");
+    window.location.assign("https://cosmos.network/goz");
+    // this.$store.dispatch("socketSubscribe");
+    // this.$store.dispatch("blockchainsFetch");
     // this.$store.dispatch("relationsFetch");
     // this.$store.dispatch("connectionsFetch");
     // this.$store.dispatch("counterpartyClientIdFetch");
